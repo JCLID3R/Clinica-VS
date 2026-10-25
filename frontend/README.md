@@ -54,3 +54,23 @@ frontend/
 1. En `paquetes/<paquete>/api.js` agregar las funciones que llaman al backend, p. ej. `listarEspecialidades: () => api.get('/personas/especialidades')`.
 2. En `casos_uso/CU06GestionarEspecialidades.js` construir el formulario/listado con `el()` y quitar `CasoUsoPendiente`.
 3. Validar en `schemas.js` antes de enviar (el backend vuelve a validar).
+
+## Diseño responsivo (obligatorio en todas las pantallas)
+
+El layout ya es responsivo: el botón ☰ de la esquina superior izquierda oculta o muestra el menú lateral.
+En computadora el menú se oculta hacia la izquierda y se recuerda la preferencia. En tablet y celular
+(hasta 900 px) el menú empieza oculto, se abre encima del contenido y se cierra con ✕, tocando fuera,
+con Esc o al elegir una opción.
+
+Para que cada caso de uso también se vea bien en celular, usar estas clases de `src/estilos/app.css`:
+
+| Clase | Uso |
+|---|---|
+| `encabezado-pagina` | Título de la pantalla (`h1`) y sus botones en `acciones`; en celular los botones ocupan todo el ancho |
+| `btn`, `btn secundario`, `btn peligro` | Botones |
+| `acciones` | Grupo de botones que se acomoda en varias líneas |
+| `tabla-contenedor` + `tabla` | Tablas: en pantallas chicas se desplazan hacia el costado sin romper la página |
+| `formulario` + `campo` | Formularios en columnas que pasan a una sola columna en celular; `completo` para un campo de ancho total |
+| `tarjetas` / `tarjeta` | Rejilla de tarjetas |
+
+Probar cada pantalla en el navegador con F12 → modo dispositivo (Ctrl+Shift+M) a 375 px, 768 px y 1280 px.
