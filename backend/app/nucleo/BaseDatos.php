@@ -27,6 +27,11 @@ final class BaseDatos
                 Config::obtener('DB_PUERTO', '5432'),
                 Config::obtener('DB_NOMBRE', 'clinica_vida_salud')
             );
+            // Supabase (nube) exige conexión cifrada: DB_SSLMODE=require. En local se deja vacío.
+            $ssl = Config::obtener('DB_SSLMODE', '');
+            if ($ssl !== '') {
+                $dsn .= ";sslmode={$ssl}";
+            }
             try {
                 self::$pdo = new PDO($dsn, Config::obtener('DB_USUARIO', 'postgres'), Config::obtener('DB_CLAVE', ''), [
                     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,

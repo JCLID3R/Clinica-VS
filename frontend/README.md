@@ -18,8 +18,8 @@ php -S localhost:5500
 
 Abrir <http://localhost:5500>. (También sirve la extensión *Live Server* de VS Code en el puerto 5500.)
 
-**Opción B — XAMPP:** abrir <http://localhost/clinica-vida-salud/frontend/> y en `src/nucleo/config.js` cambiar
-`API_URL` por `'/clinica-vida-salud/backend/public/api/v1'`.
+**Opción B — XAMPP:** abrir <http://localhost/clinica-vida-salud/frontend/>. La dirección de la API se detecta sola
+(ver `src/nucleo/config.js`), no hay que cambiar nada.
 
 > Los módulos JavaScript no funcionan abriendo `index.html` con doble clic (`file://`); siempre usar un servidor.
 

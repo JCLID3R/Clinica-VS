@@ -12,6 +12,7 @@ Grupo #12 — Sistemas de Información I (SA) — Examen Parcial II.
 | `backend/` | API en **PHP 8** con PDO (pdo_pgsql): **toda la lógica de negocio**, sesión y permisos | [README.md](backend/README.md) |
 | `frontend/` | Aplicación web en **HTML5, CSS3 y JavaScript** (módulos ES, sin compilación) | [README.md](frontend/README.md) |
 | `doc/` | Documentación PUDS-UML del proyecto (Ciclo #1) | — |
+| `despliegue/` + `Dockerfile` | Publicación en la nube: **Supabase** (base de datos) + **Render** (backend y frontend) | [README.md](despliegue/README.md) |
 
 ## Arquitectura
 
@@ -79,7 +80,9 @@ clinica-vida-salud/
 │       ├── nucleo/            api.js, rutas.js, mapaCasosUso.js, layout/, auth/
 │       ├── componentes/       componentes reutilizables
 │       └── paquetes/<paquete>/  api.js, rutas.js, schemas.js, componentes/, casos_uso/CUXX*.js
-└── doc/
+├── doc/
+├── despliegue/               apache.conf, php.ini, iniciar.sh, README.md (guía Supabase + Render)
+└── Dockerfile                 imagen para la nube (PHP 8.3 + Apache + pdo_pgsql)
 ```
 
 ## Orden para levantar todo en local
@@ -87,6 +90,11 @@ clinica-vida-salud/
 1. **Base de datos:** sigue `basededato/sql/LEEME.md`.
 2. **Backend:** sigue `backend/README.md` → <http://localhost:8000/api/v1/salud>.
 3. **Frontend:** sigue `frontend/README.md` → <http://localhost:5500>.
+
+## Publicar en la nube
+
+Base de datos en **Supabase** y aplicación en **Render**: sigue [`despliegue/README.md`](despliegue/README.md).
+En local cada uno usa su PostgreSQL; solo cambia el `.env` (en la nube, las variables de entorno de Render).
 
 ## Forma de trabajo en equipo
 
