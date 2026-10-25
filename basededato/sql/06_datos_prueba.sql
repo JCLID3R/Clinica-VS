@@ -15,11 +15,15 @@ INSERT INTO medico (registro_profesional, nombres, apellidos, telefono, correo, 
 
 INSERT INTO medico_especialidad VALUES (1,1),(2,2),(2,1),(3,4);
 
--- Horarios: Médico A lunes 08-12 y miércoles 14-18; Médico B martes 09-13 (ejemplo del enunciado)
+-- Horarios de atención por turno (Mañana / Tarde). Las fichas se generan cada 15 o 20 minutos:
+--   Dr. Juan Pérez (Medicina general) : Lunes y Miércoles mañana 07:45-12:00 cada 15 min (17 fichas)
+--                                       Lunes tarde 14:00-18:00 cada 20 min (12 fichas)
+--   Dra. Ana Rojas (Pediatría, M. gral): Martes mañana 08:00-12:00 cada 20 min, Jueves tarde 14:00-18:00 cada 20 min
+--   Dr. Carlos Méndez (Odontología)   : Viernes mañana 08:00-12:00 cada 15 min, Sábado mañana 08:00-12:00 cada 20 min
 INSERT INTO horario_atencion (id_medico, dia_semana, hora_inicio, hora_fin, duracion_cita) VALUES
- (1,1,'08:00','12:00',30),(1,3,'14:00','18:00',30),
- (2,2,'09:00','13:00',30),(2,4,'09:00','13:00',30),
- (3,5,'08:00','12:00',30);
+ (1,1,'07:45','12:00',15),(1,1,'14:00','18:00',20),(1,3,'07:45','12:00',15),
+ (2,2,'08:00','12:00',20),(2,4,'14:00','18:00',20),
+ (3,5,'08:00','12:00',15),(3,6,'08:00','12:00',20);
 
 INSERT INTO paciente (ci, nombres, apellidos, fecha_nacimiento, sexo, telefono, correo, direccion, tipo_sangre, alergias, id_usuario) VALUES
  (7845123,'María','López Arteaga','1990-04-12','F','76543210','maria.lopez@correo.com','Av. Banzer 4to anillo','O+','Penicilina',5),
@@ -30,13 +34,18 @@ INSERT INTO contacto_emergencia (id_paciente, nombre, parentesco, telefono) VALU
  (1,'Rosa Arteaga','Madre','77711122'),
  (3,'Jorge Vargas','Padre','77722233');
 
--- Citas históricas (se desactiva temporalmente la validación de fecha pasada solo para la carga inicial)
+-- Citas de ejemplo (se desactiva temporalmente la validación de fecha solo para la carga inicial)
 ALTER TABLE cita DISABLE TRIGGER tg_validar_cita;
 ALTER TABLE cita DISABLE TRIGGER tg_transicion_estado;
 INSERT INTO cita (id_paciente, id_medico, id_especialidad, fecha, hora_inicio, hora_fin, motivo, estado, motivo_cancelacion, id_usuario_registro) VALUES
- (1,1,1,'2026-09-07','09:00','09:30','Control general','Atendida',NULL,2),
- (2,1,1,'2026-09-07','09:30','10:00','Dolor de cabeza','Inasistencia',NULL,2),
- (3,2,2,'2026-09-08','10:00','10:30','Control pediátrico','Atendida',NULL,2),
- (1,2,1,'2026-09-15','09:00','09:30','Chequeo','Cancelada','El paciente viajó',2);
+ -- históricas
+ (1,1,1,'2026-09-07','09:00','09:15','Control general','Atendida',NULL,2),
+ (2,1,1,'2026-09-07','09:15','09:30','Dolor de cabeza','Inasistencia',NULL,2),
+ (3,2,2,'2026-09-08','10:00','10:20','Control pediátrico','Atendida',NULL,2),
+ (1,2,1,'2026-09-15','09:00','09:20','Chequeo','Cancelada','El paciente viajó',2),
+ -- futuras (fichas ya ocupadas del lunes 09/11/2026 con el Dr. Pérez)
+ (2,1,1,'2026-11-09','08:00','08:15','Control de presión','Programada',NULL,2),
+ (3,1,1,'2026-11-09','08:15','08:30','Fiebre','Programada',NULL,2),
+ (1,1,1,'2026-11-09','09:00','09:15','Resultados de laboratorio','Programada',NULL,2);
 ALTER TABLE cita ENABLE TRIGGER tg_validar_cita;
 ALTER TABLE cita ENABLE TRIGGER tg_transicion_estado;
