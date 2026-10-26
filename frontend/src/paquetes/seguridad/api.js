@@ -20,3 +20,11 @@
 import { api } from '../../nucleo/api.js'
 
 export default {}
+
+// ---- CU01: inicio ----
+export const iniciarSesion = (login, contrasena) => api.post('/seguridad/sesion', { login, contrasena })
+export const cerrarSesion = () => api.del('/seguridad/sesion')
+export const sesionActual = () => api.get('/seguridad/sesion')
+export const recuperarContrasena = (correo) => api.post('/seguridad/recuperar', { correo })
+export const cambiarContrasena = (datos) => api.put('/seguridad/contrasena', datos)
+// ---- CU01: fin ----

@@ -22,4 +22,9 @@ return static function (Enrutador $r): void {
     $r->get('/seguridad/permisos', [Cu03GestionarRolesPermisos::class, 'listarPermisos'], 'CU03 - Listar permisos');
     $r->get('/seguridad/roles/{id}/permisos', [Cu03GestionarRolesPermisos::class, 'permisosDelRol'], 'CU03 - Permisos de un rol');
     $r->put('/seguridad/roles/{id}/permisos', [Cu03GestionarRolesPermisos::class, 'asignarPermisos'], 'CU03 - Asignar permisos a un rol');
+
+    // ---- CU01: inicio ----
+    $r->post('/seguridad/recuperar', [Cu01IniciarSesion::class, 'recuperar'], 'CU01 - Recuperar contraseña (público)');
+    $r->put('/seguridad/contrasena', [Cu01IniciarSesion::class, 'cambiarContrasena'], 'CU01 - Cambiar contraseña');
+    // ---- CU01: fin ----
 };

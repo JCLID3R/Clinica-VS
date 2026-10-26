@@ -16,3 +16,33 @@ export function establecerUsuario(usuario) {
 export function tienePermiso(permiso) {
   return !!usuarioActual && usuarioActual.permisos.includes(permiso)
 }
+
+// ---- CU01: inicio ----
+import { sesionActual, cerrarSesion as cerrarSesionApi } from '../../paquetes/seguridad/api.js'
+
+/** Recupera la sesión del backend (al recargar la página la memoria del navegador se pierde). */
+export async function cargarSesion() {
+  try {
+    usuarioActual = await sesionActual()
+  } catch {
+    usuarioActual = null
+  }
+  return usuarioActual
+}
+
+/** Cierra la sesión en el servidor y en el navegador, y vuelve al inicio de sesión. */
+export async function cerrarSesion() {
+  try { await cerrarSesionApi() } catch { /* la sesión local se limpia igual */ }
+  usuarioActual = null
+  irA('/login')
+}
+
+/** Navega a una ruta; si ya es la actual, vuelve a pintarla. */
+export function irA(ruta) {
+  if (location.hash === '#' + ruta) window.dispatchEvent(new HashChangeEvent('hashchange'))
+  else location.hash = '#' + ruta
+}
+
+// Antes de pintar la primera pantalla se espera la sesión guardada en el servidor
+await cargarSesion()
+// ---- CU01: fin ----
