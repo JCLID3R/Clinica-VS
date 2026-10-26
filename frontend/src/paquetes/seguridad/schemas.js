@@ -61,3 +61,47 @@ export function validarCambioContrasena({ actual, nueva, confirmacion }) {
   return errores
 }
 // ---- CU01: fin ----
+
+// ---- CU02: inicio ----
+export function validarCrearUsuario(datos) {
+  const errores = {}
+  if (!datos.username?.trim()) {
+    errores.username = 'Ingrese el nombre de usuario.'
+  } else if (datos.username.trim().length > 40) {
+    errores.username = 'Máximo 40 caracteres.'
+  }
+  if (!datos.correo?.trim()) {
+    errores.correo = 'Ingrese el correo electrónico.'
+  } else if (!CORREO.test(datos.correo.trim()) || datos.correo.trim().length > 100) {
+    errores.correo = 'Correo electrónico inválido.'
+  }
+  if (datos.contrasena) {
+    const faltan = validarContrasena(datos.contrasena)
+    if (faltan.length) {
+      errores.contrasena = mensajeContrasena(faltan)
+    }
+  }
+  if (!datos.rol) {
+    errores.rol = 'Seleccione un rol.'
+  }
+  return errores
+}
+
+export function validarModificarUsuario(datos) {
+  const errores = {}
+  if (!datos.username?.trim()) {
+    errores.username = 'Ingrese el nombre de usuario.'
+  } else if (datos.username.trim().length > 40) {
+    errores.username = 'Máximo 40 caracteres.'
+  }
+  if (!datos.correo?.trim()) {
+    errores.correo = 'Ingrese el correo electrónico.'
+  } else if (!CORREO.test(datos.correo.trim()) || datos.correo.trim().length > 100) {
+    errores.correo = 'Correo electrónico inválido.'
+  }
+  if (!datos.rol) {
+    errores.rol = 'Seleccione un rol.'
+  }
+  return errores
+}
+// ---- CU02: fin ----

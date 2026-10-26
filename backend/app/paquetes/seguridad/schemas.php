@@ -72,3 +72,82 @@ function validar_cambio_contrasena(array $datos): array
     return ['actual' => (string) $datos['actual'], 'nueva' => $nueva];
 }
 // ---- CU01: fin ----
+
+// ---- CU02: inicio ----
+/** GET /seguridad/usuarios: {filtro?, rol?, estado?} */
+function validar_listar_usuarios(array $datos): array
+{
+    exigir_texto($datos, 'filtro', 'estado');
+    $v = new Validador($datos);
+    $v->texto('filtro', 100)->entero('rol')->texto('estado', 10);
+    $v->verificar();
+    return [
+        'filtro' => isset($datos['filtro']) && $datos['filtro'] ? trim((string) $datos['filtro']) : null,
+        'rol' => isset($datos['rol']) && $datos['rol'] ? (int) $datos['rol'] : null,
+        'estado' => isset($datos['estado']) && $datos['estado'] ? (string) $datos['estado'] : null,
+    ];
+}
+
+/** POST /seguridad/usuarios: {username, correo, contrasena?, rol, id_paciente?, id_medico?} */
+function validar_crear_usuario(array $datos): array
+{
+    exigir_texto($datos, 'username', 'correo', 'contrasena', 'rol');
+    $v = new Validador($datos);
+    $v->requerido('username', 'correo', 'rol')->texto('username', 40)->texto('correo', 100)->texto('rol', 30);
+    $v->correo('correo')->texto('contrasena', 72)->entero('id_paciente')->entero('id_medico');
+    $v->verificar();
+
+    $errores = [];
+    $contrasena = (string) ($datos['contrasena'] ?? '');
+    if ($contrasena) {
+        $faltan = validarContrasena($contrasena);
+        if ($faltan) {
+            $errores['contrasena'] = mensajeContrasena($faltan);
+        }
+    }
+    if ($errores) {
+        throw new \App\Nucleo\ErrorApi(400, 'Datos inválidos.', $errores);
+    }
+
+    return [
+        'username' => trim((string) $datos['username']),
+        'correo' => mb_strtolower(trim((string) $datos['correo'])),
+        'contrasena' => $contrasena,
+        'rol' => trim((string) $datos['rol']),
+        'id_paciente' => isset($datos['id_paciente']) ? (int) $datos['id_paciente'] : null,
+        'id_medico' => isset($datos['id_medico']) ? (int) $datos['id_medico'] : null,
+    ];
+}
+
+/** PUT /seguridad/usuarios/{id}: {username, correo, rol} */
+function validar_modificar_usuario(array $datos): array
+{
+    exigir_texto($datos, 'username', 'correo', 'rol');
+    $v = new Validador($datos);
+    $v->requerido('username', 'correo', 'rol')->texto('username', 40)->texto('correo', 100)->texto('rol', 30);
+    $v->correo('correo');
+    $v->verificar();
+
+    return [
+        'username' => trim((string) $datos['username']),
+        'correo' => mb_strtolower(trim((string) $datos['correo'])),
+        'rol' => trim((string) $datos['rol']),
+    ];
+}
+
+/** PATCH /seguridad/usuarios/{id}/estado: {estado} */
+function validar_cambiar_estado_usuario(array $datos): array
+{
+    exigir_texto($datos, 'estado');
+    $v = new Validador($datos);
+    $v->requerido('estado')->texto('estado', 10);
+    $v->verificar();
+
+    $estado = (string) $datos['estado'];
+    if (!in_array($estado, ['activo', 'inactivo', 'bloqueado'])) {
+        throw new \App\Nucleo\ErrorApi(400, 'Datos inválidos.', ['estado' => 'Estado inválido.']);
+    }
+
+    return ['estado' => $estado];
+}
+// ---- CU02: fin ----

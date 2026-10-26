@@ -28,3 +28,10 @@ export const sesionActual = () => api.get('/seguridad/sesion')
 export const recuperarContrasena = (correo) => api.post('/seguridad/recuperar', { correo })
 export const cambiarContrasena = (datos) => api.put('/seguridad/contrasena', datos)
 // ---- CU01: fin ----
+
+// ---- CU02: inicio ----
+export const listarUsuarios = (filtro, rol, estado) => api.get('/seguridad/usuarios', { filtro, rol, estado })
+export const crearUsuario = (datos) => api.post('/seguridad/usuarios', datos)
+export const modificarUsuario = (id, datos) => api.put(`/seguridad/usuarios/${id}`, datos)
+export const cambiarEstadoUsuario = (id, estado) => api.patch(`/seguridad/usuarios/${id}/estado`, { estado })
+// ---- CU02: fin ----
