@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace App\Paquetes\Seguridad\Politicas;
 
-use App\Nucleo\{ErrorApi, Sesion};
+use App\Nucleo\{BaseDatos, ErrorApi, Sesion};
 
 // ---- CU01: inicio ----
 // Regla del docente: el bloqueo es al TERCER intento fallido (reemplaza los 5 del encabezado).
@@ -140,3 +140,26 @@ function validarNoAutoDesactivacion(int $idUsuario, string $estadoNuevo): void
     }
 }
 // ---- CU02: fin ----
+
+// ---- CU03: inicio ----
+/** Valida que todos los IDs de permisos existan en la tabla permiso. */
+function validarPermisosExisten(array $idsPermisos): void
+{
+    if (!$idsPermisos) {
+        return;
+    }
+
+    $idsPermisos = array_map('intval', $idsPermisos);
+
+    // Obtener todos los permisos existentes
+    $permisosExistentes = BaseDatos::consultar('SELECT id_permiso FROM permiso');
+    $idsExistentes = array_map('intval', array_column($permisosExistentes, 'id_permiso'));
+
+    // Verificar que cada ID solicitado existe
+    foreach ($idsPermisos as $id) {
+        if (!in_array($id, $idsExistentes, true)) {
+            throw new ErrorApi(400, "El permiso {$id} no existe.");
+        }
+    }
+}
+// ---- CU03: fin ----

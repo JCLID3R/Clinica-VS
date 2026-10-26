@@ -67,7 +67,7 @@ final class Cu03GestionarRolesPermisos
 // ---- CU03: inicio ----
 use App\Nucleo\{BaseDatos, ErrorApi};
 use function App\Paquetes\Seguridad\Schemas\validar_asignar_permisos;
-use function App\Paquetes\Seguridad\Politicas\ipCliente;
+use function App\Paquetes\Seguridad\Politicas\{ipCliente, validarPermisosExisten};
 use function App\Paquetes\Seguridad\Repository\{
     listarRoles, listarPermisos, obtenerPermisosRol, buscarRolPorId,
     reemplazarPermisosRol, obtenerCodigosPermisosRol, registrarBitacora
@@ -138,6 +138,7 @@ final class Cu03Roles
             }
 
             $idsPermisosNuevos = $d['permisos'];
+            validarPermisosExisten($idsPermisosNuevos);
             $codigosActuales = obtenerCodigosPermisosRol($idRol);
 
             if ($rol['nombre'] === 'Administrador') {
