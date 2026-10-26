@@ -131,3 +131,107 @@ function actualizarContrasena(int $idUsuario, string $hash): void
     BaseDatos::ejecutar('UPDATE usuario SET password_hash = :h WHERE id_usuario = :id', [':h' => $hash, ':id' => $idUsuario]);
 }
 // ---- CU01: fin ----
+
+// ---- CU02: inicio ----
+/** Columnas del usuario que usa CU02 (para listar y editar). */
+const SQL_USUARIO_CU02 = "SELECT u.id_usuario, u.id_rol, u.username, u.correo, u.estado,
+                                 u.intentos_fallidos, u.ultimo_acceso, r.nombre AS rol, r.estado AS rol_estado
+                            FROM usuario u
+                            JOIN rol r ON r.id_rol = u.id_rol";
+
+/** Listar usuarios con búsqueda (por usuario o correo) y filtros (por rol y estado). */
+function listarUsuarios(?string $filtro, ?int $idRol, ?string $estado): array
+{
+    $sql = SQL_USUARIO_CU02 . ' WHERE 1=1';
+    $params = [];
+
+    if ($filtro) {
+        $sql .= ' AND (lower(u.username) LIKE lower(:filtro) OR lower(u.correo) LIKE lower(:filtro))';
+        $params[':filtro'] = '%' . $filtro . '%';
+    }
+    if ($idRol !== null) {
+        $sql .= ' AND u.id_rol = :rol';
+        $params[':rol'] = $idRol;
+    }
+    if ($estado !== null) {
+        $sql .= ' AND u.estado = :estado';
+        $params[':estado'] = $estado;
+    }
+
+    $sql .= ' ORDER BY u.username ASC';
+    return BaseDatos::consultar($sql, $params);
+}
+
+/** Crear usuario: inserta en tabla usuario y devuelve el id. */
+function crearUsuario(int $idRol, string $username, string $correo, string $passwordHash): int
+{
+    BaseDatos::ejecutar(
+        'INSERT INTO usuario (id_rol, username, correo, password_hash, estado)
+         VALUES (:rol, :user, :mail, :pass, :est)',
+        [':rol' => $idRol, ':user' => $username, ':mail' => $correo, ':pass' => $passwordHash, ':est' => 'activo']
+    );
+    $fila = BaseDatos::fila('SELECT LASTVAL() AS id');
+    return (int) $fila['id'];
+}
+
+/** Modificar usuario: username, correo, rol. */
+function modificarUsuario(int $idUsuario, string $username, string $correo, int $idRol): void
+{
+    BaseDatos::ejecutar(
+        'UPDATE usuario SET username = :user, correo = :mail, id_rol = :rol WHERE id_usuario = :id',
+        [':user' => $username, ':mail' => $correo, ':rol' => $idRol, ':id' => $idUsuario]
+    );
+}
+
+/** Cambiar estado usuario (activo, inactivo, bloqueado). Si es desbloqueo, reinicia intentos. */
+function cambiarEstadoUsuarioConIntentos(int $idUsuario, string $estado): void
+{
+    if ($estado === 'activo') {
+        BaseDatos::ejecutar(
+            'UPDATE usuario SET estado = :e, intentos_fallidos = 0 WHERE id_usuario = :id',
+            [':e' => $estado, ':id' => $idUsuario]
+        );
+    } else {
+        BaseDatos::ejecutar(
+            'UPDATE usuario SET estado = :e WHERE id_usuario = :id',
+            [':e' => $estado, ':id' => $idUsuario]
+        );
+    }
+}
+
+/** Buscar paciente sin cuenta (id_usuario es NULL). */
+function buscarPacienteSinCuenta(int $idPaciente): ?array
+{
+    return BaseDatos::fila(
+        'SELECT id_paciente, ci, nombres, apellidos FROM paciente WHERE id_paciente = :id AND id_usuario IS NULL',
+        [':id' => $idPaciente]
+    );
+}
+
+/** Buscar médico sin cuenta (id_usuario es NULL). */
+function buscarMedicoSinCuenta(int $idMedico): ?array
+{
+    return BaseDatos::fila(
+        'SELECT id_medico, registro_profesional, nombres, apellidos FROM medico WHERE id_medico = :id AND id_usuario IS NULL',
+        [':id' => $idMedico]
+    );
+}
+
+/** Vincular usuario con paciente. */
+function vincularPaciente(int $idPaciente, int $idUsuario): void
+{
+    BaseDatos::ejecutar(
+        'UPDATE paciente SET id_usuario = :user WHERE id_paciente = :id',
+        [':user' => $idUsuario, ':id' => $idPaciente]
+    );
+}
+
+/** Vincular usuario con médico. */
+function vincularMedico(int $idMedico, int $idUsuario): void
+{
+    BaseDatos::ejecutar(
+        'UPDATE medico SET id_usuario = :user WHERE id_medico = :id',
+        [':user' => $idUsuario, ':id' => $idMedico]
+    );
+}
+// ---- CU02: fin ----

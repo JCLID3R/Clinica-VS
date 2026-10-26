@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace App\Paquetes\Seguridad\Politicas;
 
-use App\Nucleo\ErrorApi;
+use App\Nucleo\{ErrorApi, Sesion};
 
 // ---- CU01: inicio ----
 // Regla del docente: el bloqueo es al TERCER intento fallido (reemplaza los 5 del encabezado).
@@ -123,3 +123,20 @@ function verificarCuentaHabilitada(array $usuario): void
     }
 }
 // ---- CU01: fin ----
+
+// ---- CU02: inicio ----
+/** Genera una contraseña aleatoria que cumple validarContrasena(). */
+function generarContrasena(): string
+{
+    return generarContrasenaTemporal();
+}
+
+/** Valida que el admin no intente auto-desactivarse o auto-bloquearse. */
+function validarNoAutoDesactivacion(int $idUsuario, string $estadoNuevo): void
+{
+    $usuario = Sesion::usuario();
+    if ($usuario['id_usuario'] === $idUsuario && $estadoNuevo !== 'activo') {
+        throw new ErrorApi(403, 'No puede desactivar o bloquear su propia cuenta.');
+    }
+}
+// ---- CU02: fin ----
