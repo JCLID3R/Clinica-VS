@@ -35,3 +35,10 @@ export const crearUsuario = (datos) => api.post('/seguridad/usuarios', datos)
 export const modificarUsuario = (id, datos) => api.put(`/seguridad/usuarios/${id}`, datos)
 export const cambiarEstadoUsuario = (id, estado) => api.patch(`/seguridad/usuarios/${id}/estado`, { estado })
 // ---- CU02: fin ----
+
+// ---- CU03: inicio ----
+export const listarRoles = () => api.get('/seguridad/roles')
+export const listarPermisos = () => api.get('/seguridad/permisos')
+export const obtenerPermisosRol = (id) => api.get(`/seguridad/roles/${id}/permisos`)
+export const asignarPermisos = (id, permisos) => api.put(`/seguridad/roles/${id}/permisos`, { permisos })
+// ---- CU03: fin ----

@@ -151,3 +151,23 @@ function validar_cambiar_estado_usuario(array $datos): array
     return ['estado' => $estado];
 }
 // ---- CU02: fin ----
+
+// ---- CU03: inicio ----
+/** PUT /seguridad/roles/{id}/permisos: {permisos: [id_permiso, ...]} */
+function validar_asignar_permisos(array $datos): array
+{
+    exigir_texto($datos);
+    $v = new Validador($datos);
+    if (!isset($datos['permisos']) || !is_array($datos['permisos'])) {
+        throw new \App\Nucleo\ErrorApi(400, 'Datos inválidos.', ['permisos' => 'Debe ser una lista de permisos.']);
+    }
+    $permisos = [];
+    foreach ($datos['permisos'] as $p) {
+        if (!is_int($p) && !is_string($p)) {
+            throw new \App\Nucleo\ErrorApi(400, 'Datos inválidos.', ['permisos' => 'Cada permiso debe ser un número.']);
+        }
+        $permisos[] = (int) $p;
+    }
+    return ['permisos' => $permisos];
+}
+// ---- CU03: fin ----

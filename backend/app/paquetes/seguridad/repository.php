@@ -235,3 +235,58 @@ function vincularMedico(int $idMedico, int $idUsuario): void
     );
 }
 // ---- CU02: fin ----
+
+// ---- CU03: inicio ----
+/** Listar todos los roles con su estado. */
+function listarRoles(): array
+{
+    return BaseDatos::consultar('SELECT id_rol, nombre, descripcion, estado FROM rol ORDER BY nombre ASC');
+}
+
+/** Listar todos los permisos disponibles. */
+function listarPermisos(): array
+{
+    return BaseDatos::consultar('SELECT id_permiso, codigo, descripcion FROM permiso ORDER BY codigo ASC');
+}
+
+/** IDs de permisos asignados a un rol. */
+function obtenerPermisosRol(int $idRol): array
+{
+    $filas = BaseDatos::consultar(
+        'SELECT rp.id_permiso, p.codigo FROM rol_permiso rp
+          JOIN permiso p ON p.id_permiso = rp.id_permiso
+          WHERE rp.id_rol = :r ORDER BY p.codigo',
+        [':r' => $idRol]
+    );
+    return $filas;
+}
+
+/** Rol existe y su información (id, nombre, estado). */
+function buscarRolPorId(int $idRol): ?array
+{
+    return BaseDatos::fila('SELECT id_rol, nombre, estado FROM rol WHERE id_rol = :id', [':id' => $idRol]);
+}
+
+/** Reemplaza los permisos de un rol: elimina todos los actuales e inserta los nuevos. */
+function reemplazarPermisosRol(int $idRol, array $idsPermisos): void
+{
+    BaseDatos::ejecutar('DELETE FROM rol_permiso WHERE id_rol = :r', [':r' => $idRol]);
+    foreach ($idsPermisos as $idPermiso) {
+        BaseDatos::ejecutar(
+            'INSERT INTO rol_permiso (id_rol, id_permiso) VALUES (:r, :p)',
+            [':r' => $idRol, ':p' => (int) $idPermiso]
+        );
+    }
+}
+
+/** Permisos codificados (para detectar cambios). */
+function obtenerCodigosPermisosRol(int $idRol): array
+{
+    $filas = BaseDatos::consultar(
+        'SELECT p.codigo FROM rol_permiso rp JOIN permiso p ON p.id_permiso = rp.id_permiso
+          WHERE rp.id_rol = :r ORDER BY p.codigo',
+        [':r' => $idRol]
+    );
+    return array_column($filas, 'codigo');
+}
+// ---- CU03: fin ----
