@@ -75,6 +75,44 @@ export default function LayoutPrincipal(raiz, rutaActual) {
   ])
 
   app.append(menu, velo, el('div', { class: 'principal' }, [cabecera, contenido]))
+  ajustarLayoutCU01(app, cabecera, rutaActual)
   raiz.append(app)
   return contenido
 }
+
+// ---- CU01: inicio ----
+import { PERMISO_POR_CU } from '../mapaCasosUso.js'
+import { tienePermiso, cerrarSesion } from '../auth/sesion.js'
+
+const CU_POR_RUTA = Object.fromEntries(PAQUETES.flatMap((p) => p.casos.map((c) => ['#' + c.ruta, c.codigo])))
+
+/**
+ * Ajusta el layout según la sesión:
+ *   - sin sesión: pantalla completa de inicio de sesión (sin menú ni cabecera);
+ *   - con cambio de contraseña pendiente: sin menú, solo el formulario y «Cerrar sesión»;
+ *   - con sesión: el menú muestra solo los casos de uso que permite el rol.
+ */
+function ajustarLayoutCU01(app, cabecera, rutaActual) {
+  const usuario = obtenerUsuario()
+  if (!usuario) {
+    app.classList.add('sin-sesion')
+    return
+  }
+  if (usuario.debe_cambiar_contrasena) app.classList.add('cambio-obligatorio')
+
+  app.querySelectorAll('.menu .grupo a').forEach((enlace) => {
+    const permiso = PERMISO_POR_CU[CU_POR_RUTA[enlace.getAttribute('href')]]
+    if (permiso && !tienePermiso(permiso)) enlace.remove()
+  })
+  app.querySelectorAll('.menu .grupo').forEach((grupo) => { if (!grupo.querySelector('a')) grupo.remove() })
+  const cuenta = app.querySelector('.menu a[href="#/login"]')
+  if (cuenta) cuenta.lastChild.textContent = 'Mi cuenta y contraseña'
+  if (rutaActual === '/login' && cuenta) cuenta.classList.add('activo')
+
+  const etiqueta = cabecera.querySelector('.usuario')
+  etiqueta.textContent = `${usuario.username} · ${usuario.rol}`
+  const salir = el('button', { class: 'btn secundario btn-salir', type: 'button' }, 'Cerrar sesión')
+  salir.addEventListener('click', () => { salir.disabled = true; cerrarSesion() })
+  cabecera.append(salir)
+}
+// ---- CU01: fin ----

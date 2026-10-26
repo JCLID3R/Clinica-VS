@@ -205,3 +205,16 @@ export const PAQUETES = [
     ]
   }
 ]
+
+// ---- CU01: inicio ----
+/** Permiso que exige cada caso de uso en el backend (encabezado de casos_uso/cuXX_*.php). CU01 es público. */
+export const PERMISO_POR_CU = {
+  CU02: 'usuario.gestionar', CU03: 'rol.gestionar',
+  CU04: 'paciente.gestionar', CU05: 'medico.gestionar', CU06: 'especialidad.gestionar',
+  CU07: 'horario.gestionar', CU08: 'agenda.consultar',
+  CU09: 'cita.programar', CU10: 'cita.programar', CU11: 'cita.programar', CU12: 'cita.asistencia',
+  CU13: 'agenda.consultar', CU14: 'agenda.consultar',
+  CU15: 'reporte.generar',
+  CU16: 'perfil.paciente', CU17: 'perfil.paciente',
+}
+// ---- CU01: fin ----

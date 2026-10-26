@@ -25,3 +25,8 @@ foreach (PAQUETES as $paquete) {
         require_once $casoUso;
     }
 }
+
+// ---- CU01: inicio ----
+// Envío de correos (recuperación y aviso de cambio de contraseña)
+require_once __DIR__ . '/Correo.php';
+// ---- CU01: fin ----
