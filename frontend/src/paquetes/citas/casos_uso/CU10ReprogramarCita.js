@@ -1,5 +1,5 @@
 /**
-CU10ReprogramarCita.js
+ * CU10ReprogramarCita.js
  * CU10 - Reprogramar cita  (paquete citas, Ciclo 2)
  * Actores: Recepcionista
  *
@@ -8,7 +8,7 @@ CU10ReprogramarCita.js
  */
 import { api } from '../../../nucleo/api.js';
 
-export async function CU10ReprogramarCita() {
+ async function CU10ReprogramarCita() {
   const contenedor = document.querySelector('#contenedor-principal');
   if (!contenedor) return;
 
@@ -91,6 +91,7 @@ export async function CU10ReprogramarCita() {
     }
   });
 
+
   // Guardar reprogramación
   btnGuardar.addEventListener('click', async () => {
     const idHorario = inputIdHorario.value.trim();
@@ -108,3 +109,4 @@ export async function CU10ReprogramarCita() {
     }
   });
 }
+export default CU10ReprogramarCita;
