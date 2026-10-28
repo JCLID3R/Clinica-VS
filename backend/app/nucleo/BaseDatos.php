@@ -1,5 +1,6 @@
 <?php
 /**
+* BaseDatos.php
  * BaseDatos: conexión única a PostgreSQL con PDO (controlador pdo_pgsql).
  *
  * - Consultas siempre preparadas (evita inyección SQL).
@@ -78,6 +79,29 @@ final class BaseDatos
      * @param callable(PDO):T $bloque
      * @return T
      */
+    /**
+     * Registra una acción en la bitácora del sistema de forma manual.
+     */
+    public static function registrarBitacora(string $accion, ?string $tabla = null, ?int $idRegistro = null, ?string $detalle = null): void
+    {
+        // Buscamos el ID del usuario en la sesión (asegúrate de que así se llame en tu proyecto)
+        $idUsuario = $_SESSION['usuario']['id_usuario'] ?? null;
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        self::ejecutar(
+            "INSERT INTO bitacora (id_usuario, accion, tabla, id_registro, detalle, ip) 
+             VALUES (:id_usuario, :accion, :tabla, :id_registro, :detalle, :ip)",
+            [
+                'id_usuario' => $idUsuario,
+                'accion'     => $accion,
+                'tabla'      => $tabla,
+                'id_registro'=> $idRegistro,
+                'detalle'    => $detalle,
+                'ip'         => $ip
+            ]
+        );
+    }
+    
     public static function transaccion(callable $bloque, ?int $idUsuario = null): mixed
     {
         $pdo = self::conexion();
