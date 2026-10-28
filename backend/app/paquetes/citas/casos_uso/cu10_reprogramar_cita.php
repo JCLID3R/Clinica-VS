@@ -1,6 +1,6 @@
 <?php
 /**
-cu10_reprogramar_cita.php
+* cu10_reprogramar_cita.php
  * CU10 - Reprogramar cita
  * Paquete: citas  ·  Ciclo 2  ·  Prioridad Alta  ·  Requisito: RF08
  *
