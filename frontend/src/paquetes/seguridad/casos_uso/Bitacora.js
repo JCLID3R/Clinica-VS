@@ -2,9 +2,15 @@
 import { api } from '../../../nucleo/api.js';
 
 export default async function Bitacora() {
-  const contenedor = document.querySelector('#contenedor-principal');
-  if (!contenedor) return;
+  // Buscamos el contenedor de la vista
+  const contenedor = document.querySelector('main') || document.querySelector('#app') || document.querySelector('#contenedor-principal');
+  
+  if (!contenedor) {
+    console.error("No se encontró el contenedor para la bitácora");
+    return;
+  }
 
+  // Pintamos la estructura base
   contenedor.innerHTML = `
     <div style="padding: 20px;">
       <h2>Bitácora del Sistema</h2>
@@ -27,17 +33,17 @@ export default async function Bitacora() {
   `;
 
   try {
-    // Llamamos al endpoint que creamos en el router.php
+    // Hacemos la petición al backend
     const respuesta = await api.get('/seguridad/bitacora');
-    const logs = respuesta.bitacora;
+    const logs = respuesta.bitacora || []; // Si la respuesta viene vacía, usamos un arreglo
     const tbody = document.querySelector('#tabla-bitacora');
 
     if (logs.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="padding: 10px; text-align: center;">No hay registros aún.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="padding: 10px; text-align: center;">No hay registros aún. Inicia sesión para probar.</td></tr>`;
       return;
     }
 
-    // Formateamos las filas
+    // Pintamos las filas
     tbody.innerHTML = logs.map(log => {
       const fecha = new Date(log.fecha).toLocaleString('es-ES');
       return `
@@ -52,9 +58,10 @@ export default async function Bitacora() {
     }).join('');
 
   } catch (error) {
+    // Si hay un error (por ejemplo, el backend falló), lo mostramos en la tabla
     document.querySelector('#tabla-bitacora').innerHTML = `
       <tr><td colspan="5" style="padding: 10px; text-align: center; color: red;">
-        Error al cargar la bitácora: ${error.message}
+        <strong>Error:</strong> ${error.message}
       </td></tr>
     `;
   }
