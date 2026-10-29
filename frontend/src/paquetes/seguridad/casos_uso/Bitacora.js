@@ -2,15 +2,10 @@
 import { api } from '../../../nucleo/api.js';
 
 export default async function Bitacora() {
-  // Buscamos el contenedor de la vista
   const contenedor = document.querySelector('main') || document.querySelector('#app') || document.querySelector('#contenedor-principal');
   
-  if (!contenedor) {
-    console.error("No se encontró el contenedor para la bitácora");
-    return;
-  }
+  if (!contenedor) return;
 
-  // Pintamos la estructura base
   contenedor.innerHTML = `
     <div style="padding: 20px;">
       <h2>Bitácora del Sistema</h2>
@@ -33,17 +28,21 @@ export default async function Bitacora() {
   `;
 
   try {
-    // Hacemos la petición al backend
-    const respuesta = await api.get('/seguridad/bitacora');
-    const logs = respuesta.bitacora || []; // Si la respuesta viene vacía, usamos un arreglo
+    // Usamos fetch directo a la API para evitar problemas de sesión en Render
+    const url = window.location.origin + '/api/v1/seguridad/bitacora';
+    const resp = await fetch(url, { credentials: 'include' });
+    const datos = await resp.json();
+    
+    if (!resp.ok) throw new Error(datos.error?.mensaje || 'Error al cargar');
+
+    const logs = datos.bitacora || [];
     const tbody = document.querySelector('#tabla-bitacora');
 
     if (logs.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="padding: 10px; text-align: center;">No hay registros aún. Inicia sesión para probar.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="padding: 10px; text-align: center;">No hay registros aún.</td></tr>`;
       return;
     }
 
-    // Pintamos las filas
     tbody.innerHTML = logs.map(log => {
       const fecha = new Date(log.fecha).toLocaleString('es-ES');
       return `
@@ -58,7 +57,6 @@ export default async function Bitacora() {
     }).join('');
 
   } catch (error) {
-    // Si hay un error (por ejemplo, el backend falló), lo mostramos en la tabla
     document.querySelector('#tabla-bitacora').innerHTML = `
       <tr><td colspan="5" style="padding: 10px; text-align: center; color: red;">
         <strong>Error:</strong> ${error.message}
