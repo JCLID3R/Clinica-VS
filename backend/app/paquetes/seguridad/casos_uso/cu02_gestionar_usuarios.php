@@ -1,5 +1,6 @@
 <?php
 /**
+ * cu02_gestionar_usuarios.php
  * CU02 - Gestionar usuarios
  * Paquete: seguridad  ·  Ciclo 1  ·  Prioridad Alta  ·  Requisito: RF01 / Rol Administrador
  *
@@ -154,6 +155,7 @@ final class Cu02Usuarios
                 }
             }
 
+            // Esta es la línea correcta que ya tenías
             registrarBitacora($s['id_usuario'], 'USUARIO_CREAR', $idUsuario, 'Usuario creado: ' . $d['username'], $ip);
 
             return [
@@ -180,7 +182,6 @@ final class Cu02Usuarios
             ],
         ];
     }
-
     public static function modificar(Peticion $p): array
     {
         $s = Sesion::usuario();
