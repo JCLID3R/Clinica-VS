@@ -1,4 +1,5 @@
 /**
+ *mapaCasosUso.js
  * Los 6 paquetes del sistema y sus 17 casos de uso (mismo orden que el backend).
  * Todos los casos de uso están PENDIENTES.
  */
@@ -36,6 +37,13 @@ export const PAQUETES = [
         "actores": [
           "Administrador"
         ]
+      },
+      {
+        "codigo": "RNF",
+        "nombre": "Ver Bitácora",
+        "ruta": "/seguridad/bitacora",
+        "ciclo": 2,
+        "actores": ["Administrador"]
       }
     ]
   },
