@@ -35,7 +35,7 @@ return static function (Enrutador $r): void {
     // --- RNF: Bitácora (NUEVO) ---
     $r->get('/seguridad/bitacora', function (Peticion $p) {
         // Solo el admin puede ver esto (o el permiso que uses)
-        Sesion::requerir('usuario.gestionar'); 
+        Sesion::requerir(); 
         
         $usuario = Sesion::usuario();
         
