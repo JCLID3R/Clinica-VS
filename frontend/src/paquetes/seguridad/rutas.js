@@ -9,5 +9,5 @@ export default [
   { ruta: '/login', codigo: 'CU01', vista: CU01IniciarSesion },
   { ruta: '/seguridad/usuarios', codigo: 'CU02', vista: CU02GestionarUsuarios },
   { ruta: '/seguridad/roles', codigo: 'CU03', vista: CU03GestionarRolesPermisos },
-  { ruta: '/seguridad/bitacora', codigo: 'RNF', vista: Bitacora }, // <-- AGREGAR ESTA LÍNEA
+  { ruta: '/seguridad/bitacora', codigo: 'RNF', vista: Bitacora } // <-- AGREGAR ESTA LÍNEA
 ]
