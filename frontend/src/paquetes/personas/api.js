@@ -39,8 +39,14 @@ export const listarEspecialidadesActivas = () => api.get('/personas/especialidad
 // ---- CU05: fin ----
 
 // ---- CU06: inicio ----
-export const listarEspecialidades = (filtro = '', estado = '') =>
-  api.get('/personas/especialidades', { filtro, estado })
+export const listarEspecialidades = (pagina = 1, por_pagina = 25, filtro = '', estado = '') => {
+  const params = new URLSearchParams()
+  if (filtro) params.append('filtro', filtro)
+  if (estado) params.append('estado', estado)
+  params.append('pagina', pagina)
+  params.append('por_pagina', por_pagina)
+  return api.get(`/personas/especialidades?${params.toString()}`)
+}
 export const crearEspecialidad = (datos) => api.post('/personas/especialidades', datos)
 export const modificarEspecialidad = (id, datos) => api.put(`/personas/especialidades/${id}`, datos)
 export const cambiarEstadoEspecialidad = (id, estado) => api.patch(`/personas/especialidades/${id}/estado`, { estado })
