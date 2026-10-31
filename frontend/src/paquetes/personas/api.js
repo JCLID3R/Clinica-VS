@@ -21,6 +21,13 @@
  */
 import { api } from '../../nucleo/api.js'
 
+// ---- CU04: inicio ----
+export const listarPacientes = (query = '') => api.get(`/personas/pacientes${query}`)
+export const crearPaciente = (datos) => api.post('/personas/pacientes', datos)
+export const modificarPaciente = (id, datos) => api.put(`/personas/pacientes/${id}`, datos)
+export const cambiarEstadoPaciente = (id, estado) => api.patch(`/personas/pacientes/${id}/estado`, { estado })
+// ---- CU04: fin ----
+
 // ---- CU06: inicio ----
 export const listarEspecialidades = (filtro = '', estado = '') =>
   api.get('/personas/especialidades', { filtro, estado })

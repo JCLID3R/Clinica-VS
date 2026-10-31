@@ -11,11 +11,14 @@ use App\Paquetes\Personas\CasosUso\Cu05GestionarMedicos;
 use App\Paquetes\Personas\CasosUso\Cu06GestionarEspecialidades;
 
 return static function (Enrutador $r): void {
+    // ---- CU04: inicio ----
     $r->get('/personas/pacientes', [Cu04GestionarPacientes::class, 'listar'], 'CU04 - Listar y buscar pacientes (?buscar=)');
     $r->get('/personas/pacientes/{id}', [Cu04GestionarPacientes::class, 'obtener'], 'CU04 - Datos de un paciente');
+    $r->get('/personas/pacientes/{id}/citas', [Cu04GestionarPacientes::class, 'citas'], 'CU04 - Listar citas del paciente');
     $r->post('/personas/pacientes', [Cu04GestionarPacientes::class, 'registrar'], 'CU04 - Registrar paciente');
     $r->put('/personas/pacientes/{id}', [Cu04GestionarPacientes::class, 'modificar'], 'CU04 - Modificar paciente');
     $r->patch('/personas/pacientes/{id}/estado', [Cu04GestionarPacientes::class, 'cambiarEstado'], 'CU04 - Activar o desactivar paciente');
+    // ---- CU04: fin ----
     $r->get('/personas/medicos', [Cu05GestionarMedicos::class, 'listar'], 'CU05 - Listar y buscar médicos');
     $r->post('/personas/medicos', [Cu05GestionarMedicos::class, 'registrar'], 'CU05 - Registrar médico');
     $r->put('/personas/medicos/{id}', [Cu05GestionarMedicos::class, 'modificar'], 'CU05 - Modificar médico y especialidades');
