@@ -127,6 +127,7 @@ a { color: inherit; text-decoration: none; }
 .campo label { font-weight: 500; color: var(--texto); }
 .campo input, .campo select, .campo textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--borde); border-radius: 6px;
                                                font: inherit; font-size: 14px; transition: border-color .2s; }
+.campo input[type="checkbox"], .campo input[type="radio"] { width: auto; flex: none; padding: 0; border: none; }
 .campo input:focus, .campo select:focus, .campo textarea:focus { outline: none; border-color: var(--azul);
                                                                    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1); }
 .campo .error-campo { color: var(--error); font-size: 12px; font-weight: 500; }
