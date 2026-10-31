@@ -21,4 +21,12 @@
  */
 import { api } from '../../nucleo/api.js'
 
+// ---- CU06: inicio ----
+export const listarEspecialidades = (filtro = '', estado = '') =>
+  api.get('/personas/especialidades', { filtro, estado })
+export const crearEspecialidad = (datos) => api.post('/personas/especialidades', datos)
+export const modificarEspecialidad = (id, datos) => api.put(`/personas/especialidades/${id}`, datos)
+export const cambiarEstadoEspecialidad = (id, estado) => api.patch(`/personas/especialidades/${id}/estado`, { estado })
+// ---- CU06: fin ----
+
 export default {}
