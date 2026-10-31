@@ -3,6 +3,7 @@
  * Los 6 paquetes del sistema y sus 17 casos de uso (mismo orden que el backend).
  * Todos los casos de uso están PENDIENTES.
  */
+// ---- REDISENO: inicio ----
 export const PAQUETES = [
   {
     "paquete": "seguridad",
@@ -225,4 +226,5 @@ export const PERMISO_POR_CU = {
   CU15: 'reporte.generar',
   CU16: 'perfil.paciente', CU17: 'perfil.paciente',
 }
+// ---- REDISENO: fin ----
 // ---- CU01: fin ----

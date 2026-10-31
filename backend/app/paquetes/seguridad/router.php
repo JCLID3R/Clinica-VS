@@ -11,6 +11,7 @@ use App\Nucleo\{Enrutador, Peticion, Sesion, BaseDatos, Respuesta};
 use App\Paquetes\Seguridad\CasosUso\Cu01IniciarSesion;
 use App\Paquetes\Seguridad\CasosUso\Cu02GestionarUsuarios;
 use App\Paquetes\Seguridad\CasosUso\Cu03GestionarRolesPermisos;
+use App\Paquetes\Seguridad\CasosUso\CuBitacora;
 
 return static function (Enrutador $r): void {
     // --- Rutas de CU01 ---
@@ -32,12 +33,10 @@ return static function (Enrutador $r): void {
     $r->get('/seguridad/roles/{id}/permisos', [Cu03GestionarRolesPermisos::class, 'permisosDelRol'], 'CU03 - Permisos de un rol');
     $r->put('/seguridad/roles/{id}/permisos', [Cu03GestionarRolesPermisos::class, 'asignarPermisos'], 'CU03 - Asignar permisos a un rol');
 
-    // --- RNF: Bitácora (NUEVO) ---
-    $r->get('/seguridad/bitacora', function (Peticion $p) {
-        // Al quitar la validación de sesión estricta, evitamos el error 500 en Render
-        // debido a que el navegador no está enviando la cookie de sesión.
-        $logs = BaseDatos::consultar("SELECT b.*, u.username FROM bitacora b LEFT JOIN usuario u ON b.id_usuario = u.id_usuario ORDER BY b.fecha DESC LIMIT 100");
-        
-        return Respuesta::exito(['bitacora' => $logs]);
-    }, 'RNF - Ver bitácora de acciones');
+    // ---- BITACORA: inicio ----
+    // --- Rutas de Bitácora ---
+    $r->get('/seguridad/bitacora', [CuBitacora::class, 'listar'], 'RNF - Listar bitácora');
+    $r->get('/seguridad/bitacora/csv', [CuBitacora::class, 'exportarCsv'], 'RNF - Exportar bitácora en CSV');
+    $r->get('/seguridad/bitacora/resumen', [CuBitacora::class, 'resumen'], 'RNF - Resumen de bitácora para el panel');
+    // ---- BITACORA: fin ----
 };

@@ -30,3 +30,8 @@ foreach (PAQUETES as $paquete) {
 // Envío de correos (recuperación y aviso de cambio de contraseña)
 require_once __DIR__ . '/Correo.php';
 // ---- CU01: fin ----
+
+// ---- BITACORA: inicio ----
+// Bitácora (nombre especial: cu_bitacora.php, no coincide con glob cu*.php)
+require_once __DIR__ . '/../paquetes/seguridad/casos_uso/cu_bitacora.php';
+// ---- BITACORA: fin ----
