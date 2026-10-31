@@ -12,6 +12,7 @@ La base guarda **los datos y sus relaciones** y protege las reglas críticas. **
 | `04_vistas.sql` | `v_agenda_medica` (agenda e historial) y `v_resumen_estados` (reportes) |
 | `05_datos_iniciales.sql` | Roles, permisos, usuario `admin` y especialidades |
 | `06_datos_prueba.sql` | Usuarios, médicos, horarios, pacientes y citas de prueba (ficticios) |
+| `07_datos_demo.sql` | Datos de demostración adicionales (Ciclo 1) — *opcional* |
 | `pruebas/10_pruebas.sql` | Pruebas de las reglas de la base (CI duplicado, citas superpuestas, fuera de horario…) |
 | `99_reiniciar.sql` | Borra todo el esquema (solo en desarrollo) |
 

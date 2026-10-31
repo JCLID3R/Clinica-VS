@@ -42,3 +42,29 @@ export const listarPermisos = () => api.get('/seguridad/permisos')
 export const obtenerPermisosRol = (id) => api.get(`/seguridad/roles/${id}/permisos`)
 export const asignarPermisos = (id, permisos) => api.put(`/seguridad/roles/${id}/permisos`, { permisos })
 // ---- CU03: fin ----
+
+// ---- BITACORA: inicio ----
+import { API_URL } from '../../nucleo/config.js'
+
+export const listarBitacora = (filtros) => {
+  const params = new URLSearchParams()
+  if (filtros.usuario) params.append('usuario', filtros.usuario)
+  if (filtros.tabla) params.append('tabla', filtros.tabla)
+  if (filtros.accion) params.append('accion', filtros.accion)
+  if (filtros.desde) params.append('desde', filtros.desde)
+  if (filtros.hasta) params.append('hasta', filtros.hasta)
+  if (filtros.pagina) params.append('pagina', filtros.pagina)
+  if (filtros.por_pagina) params.append('por_pagina', filtros.por_pagina)
+  return api.get(`/seguridad/bitacora?${params.toString()}`)
+}
+export const exportarBitacoraCsv = (filtros) => {
+  const params = new URLSearchParams()
+  if (filtros.usuario) params.append('usuario', filtros.usuario)
+  if (filtros.tabla) params.append('tabla', filtros.tabla)
+  if (filtros.accion) params.append('accion', filtros.accion)
+  if (filtros.desde) params.append('desde', filtros.desde)
+  if (filtros.hasta) params.append('hasta', filtros.hasta)
+  window.location.href = `${API_URL}/seguridad/bitacora/csv?${params.toString()}`
+}
+export const resumenBitacora = () => api.get('/seguridad/bitacora/resumen')
+// ---- BITACORA: fin ----

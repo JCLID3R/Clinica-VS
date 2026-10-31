@@ -171,3 +171,29 @@ function validar_asignar_permisos(array $datos): array
     return ['permisos' => $permisos];
 }
 // ---- CU03: fin ----
+
+// ---- BITACORA: inicio ----
+/** GET /seguridad/bitacora: filtros y paginación. */
+function validar_listar_bitacora(array $params): array
+{
+    $resultado = [
+        'usuario' => trim((string) ($params['usuario'] ?? '')),
+        'tabla' => trim((string) ($params['tabla'] ?? '')),
+        'accion' => trim((string) ($params['accion'] ?? '')),
+        'desde' => trim((string) ($params['desde'] ?? '')),
+        'hasta' => trim((string) ($params['hasta'] ?? '')),
+        'pagina' => max(1, (int) ($params['pagina'] ?? 1)),
+        'por_pagina' => min(100, max(1, (int) ($params['por_pagina'] ?? 25))),
+    ];
+
+    // Validar fechas si están presentes
+    if (!empty($resultado['desde']) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $resultado['desde'])) {
+        throw new \App\Nucleo\ErrorApi(400, 'Datos inválidos.', ['desde' => 'Formato: YYYY-MM-DD']);
+    }
+    if (!empty($resultado['hasta']) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $resultado['hasta'])) {
+        throw new \App\Nucleo\ErrorApi(400, 'Datos inválidos.', ['hasta' => 'Formato: YYYY-MM-DD']);
+    }
+
+    return $resultado;
+}
+// ---- BITACORA: fin ----

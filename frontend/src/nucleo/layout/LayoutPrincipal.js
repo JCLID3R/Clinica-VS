@@ -10,6 +10,9 @@ import { PAQUETES } from '../mapaCasosUso.js'
 import { NOMBRE_SISTEMA } from '../config.js'
 import { obtenerUsuario } from '../auth/sesion.js'
 import { el } from '../../componentes/comunes.js'
+// ---- REDISENO: inicio ----
+import { icono } from '../../componentes/iconos.js'
+// ---- REDISENO: fin ----
 
 const CLAVE_MENU = 'clinica.menuOculto'
 const pantallaChica = window.matchMedia('(max-width: 900px)')
@@ -26,37 +29,83 @@ export default function LayoutPrincipal(raiz, rutaActual) {
   const usuario = obtenerUsuario()
   raiz.replaceChildren()
 
-  const cerrar = el('button', { class: 'btn-cerrar-menu', type: 'button', 'aria-label': 'Cerrar el menú' }, '✕')
+  // ---- REDISENO: inicio ----
+  const cerrar = el('button', { class: 'btn-cerrar-menu', type: 'button', 'aria-label': 'Cerrar el menú' })
+  cerrar.append(icono.cerrar())
+
+  const secciones = {
+    'Inicio': [{ titulo: 'Panel principal', ruta: '/', iconoFn: () => icono.panelPrincipal() }],
+    'Citas': [
+      { titulo: 'Fichas disponibles', ruta: '/citas/fichas', iconoFn: () => icono.programarCita() },
+      { titulo: 'Programar cita', ruta: '/citas/programar', iconoFn: () => icono.programarCita() },
+      { titulo: 'Agenda médica', ruta: '/citas/agenda', iconoFn: () => icono.agendaMedica() },
+    ],
+    'Registros': [
+      { titulo: 'Pacientes', ruta: '/personas/pacientes', iconoFn: () => icono.pacientes() },
+      { titulo: 'Médicos', ruta: '/personas/medicos', iconoFn: () => icono.medicos() },
+      { titulo: 'Especialidades', ruta: '/personas/especialidades', iconoFn: () => icono.especialidades() },
+      { titulo: 'Horarios', ruta: '/agenda/horarios', iconoFn: () => icono.horarios() },
+    ],
+    'Administración': [
+      { titulo: 'Usuarios', ruta: '/seguridad/usuarios', iconoFn: () => icono.usuarios() },
+      { titulo: 'Roles y permisos', ruta: '/seguridad/roles', iconoFn: () => icono.rolesPermisos() },
+      { titulo: 'Bitácora', ruta: '/seguridad/bitacora', iconoFn: () => icono.bitacora() },
+    ],
+  }
+
+  const menuGrupos = Object.entries(secciones).map(([seccion, items]) =>
+    el('div', { class: 'grupo' }, [
+      el('h6', {}, seccion),
+      ...items.map((item) => {
+        const cu = PAQUETES.flatMap(p => p.casos).find(c => c.ruta === item.ruta)
+        return el('a', {
+          href: '#' + item.ruta,
+          class: item.ruta === rutaActual ? 'activo' : '',
+          title: cu ? cu.codigo : '',
+        }, [
+          item.iconoFn(),
+          item.titulo,
+        ])
+      }),
+    ]),
+  )
+
+  const logoDiv = el('span', { class: 'marca-icono' })
+  logoDiv.append(icono.logo())
+
   const menu = el('nav', { class: 'menu', id: 'menu-lateral', 'aria-label': 'Menú principal' }, [
     el('div', { class: 'menu-cabeza' }, [
-      el('a', { class: 'marca', href: '#/' }, [el('span', { class: 'cruz' }, '✚'), NOMBRE_SISTEMA]),
+      el('a', { class: 'marca', href: '#/' }, [
+        logoDiv,
+        el('div', {}, [
+          el('div', {}, 'Vida Salud'),
+          el('div', { class: 'marca-subtitulo' }, 'Clínica · Santa Cruz'),
+        ]),
+      ]),
       cerrar,
     ]),
-    ...PAQUETES.map((p) =>
-      el('div', { class: 'grupo' }, [
-        el('h6', {}, p.titulo),
-        ...p.casos.map((c) =>
-          el('a', { href: '#' + c.ruta, class: c.ruta === rutaActual ? 'activo' : '' }, [el('b', {}, c.codigo), ' ', c.nombre]),
-        ),
-      ]),
-    ),
+    ...menuGrupos,
   ])
+  // ---- REDISENO: fin ----
 
   const app = el('div', { class: 'app' })
   const velo = el('div', { class: 'velo', 'aria-hidden': 'true' })
-  const boton = el('button', {
+
+  // Crear btnHamburguesa aquí para usarlo en aplicar()
+  const btnHamburguesa = el('button', {
     class: 'btn-menu', type: 'button', 'aria-controls': 'menu-lateral', 'aria-label': 'Mostrar u ocultar el menú',
-  }, [el('span'), el('span'), el('span')])
+  })
+  btnHamburguesa.append(icono.hamburguesa(20))
 
   // En pantalla chica el menú abierto es temporal; en computadora se respeta la preferencia guardada.
   function aplicar(oculto) {
     app.classList.toggle('menu-oculto', oculto)
-    boton.setAttribute('aria-expanded', String(!oculto))
+    btnHamburguesa.setAttribute('aria-expanded', String(!oculto))
   }
   const estaOculto = () => app.classList.contains('menu-oculto')
   aplicar(pantallaChica.matches ? true : leerPreferencia())
 
-  boton.addEventListener('click', () => {
+  btnHamburguesa.addEventListener('click', () => {
     const oculto = !estaOculto()
     aplicar(oculto)
     if (!pantallaChica.matches) guardarPreferencia(oculto)
@@ -67,12 +116,62 @@ export default function LayoutPrincipal(raiz, rutaActual) {
   document.onkeydown = (e) => { if (e.key === 'Escape' && pantallaChica.matches && !estaOculto()) aplicar(true) }
   pantallaChica.onchange = (e) => aplicar(e.matches ? true : leerPreferencia())
 
+  // ---- REDISENO: inicio ----
   const contenido = el('main', { class: 'contenido' })
+
+  // Fecha en español
+  function obtenerFechaLarga() {
+    const ahora = new Date()
+    const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+    const dia = diasSemana[ahora.getDay()]
+    const fecha = ahora.getDate()
+    const mes = meses[ahora.getMonth()]
+    const año = ahora.getFullYear()
+    return `${dia} ${fecha} de ${mes} de ${año}`
+  }
+
+  const fechaSpan = el('span', { class: 'fecha' })
+  fechaSpan.append(icono.calendario(16), ' ', obtenerFechaLarga())
+
+  let menuUsuarioBotón, desplegableUsuario
+  if (usuario) {
+    menuUsuarioBotón = el('button', { class: 'menu-usuario', type: 'button' }, [
+      el('span', { class: 'avatar' }, usuario.username[0].toUpperCase()),
+      el('div', { class: 'usuario-info' }, [
+        el('span', { class: 'usuario-nombre' }, usuario.username),
+        el('span', { class: 'usuario-rol' }, usuario.rol),
+      ]),
+    ])
+    const flechaSvg = el('span', { class: 'flecha' })
+    flechaSvg.append(icono.flechaAbajo(16))
+    menuUsuarioBotón.append(flechaSvg)
+
+    const miCuenta = el('a', { href: '#/login' })
+    miCuenta.append(icono.miCuenta(16), ' Mi cuenta y contraseña')
+
+    const btnCerrarSesion = el('button', { type: 'button', class: 'btn-cerrar-sesion-menu' })
+    btnCerrarSesion.append(icono.cerrarSesion(16), ' Cerrar sesión')
+
+    desplegableUsuario = el('div', { class: 'desplegable-usuario' }, [
+      miCuenta,
+      el('div', { class: 'separador' }),
+      btnCerrarSesion,
+    ])
+  }
+
   const cabecera = el('header', { class: 'cabecera' }, [
-    boton,
-    el('span', { class: 'titulo' }, 'Sistema web de gestión de citas médicas'),
-    el('span', { class: 'usuario' }, usuario ? `${usuario.username} · ${usuario.rol}` : 'Sin sesión (CU01 pendiente)'),
+    el('div', { class: 'cabecera-izq' }, [
+      btnHamburguesa,
+      el('span', { class: 'titulo' }, 'Sistema de gestión de citas'),
+      fechaSpan,
+    ]),
+    el('div', { class: 'cabecera-der' }, usuario ? [
+      menuUsuarioBotón,
+      desplegableUsuario,
+    ] : [el('span', {}, 'Sin sesión')]),
   ])
+  // ---- REDISENO: fin ----
 
   app.append(menu, velo, el('div', { class: 'principal' }, [cabecera, contenido]))
   ajustarLayoutCU01(app, cabecera, rutaActual)
@@ -100,19 +199,28 @@ function ajustarLayoutCU01(app, cabecera, rutaActual) {
   }
   if (usuario.debe_cambiar_contrasena) app.classList.add('cambio-obligatorio')
 
+  // ---- REDISENO: inicio ----
   app.querySelectorAll('.menu .grupo a').forEach((enlace) => {
     const permiso = PERMISO_POR_CU[CU_POR_RUTA[enlace.getAttribute('href')]]
     if (permiso && !tienePermiso(permiso)) enlace.remove()
   })
   app.querySelectorAll('.menu .grupo').forEach((grupo) => { if (!grupo.querySelector('a')) grupo.remove() })
-  const cuenta = app.querySelector('.menu a[href="#/login"]')
-  if (cuenta) cuenta.lastChild.textContent = 'Mi cuenta y contraseña'
-  if (rutaActual === '/login' && cuenta) cuenta.classList.add('activo')
 
-  const etiqueta = cabecera.querySelector('.usuario')
-  etiqueta.textContent = `${usuario.username} · ${usuario.rol}`
-  const salir = el('button', { class: 'btn secundario btn-salir', type: 'button' }, 'Cerrar sesión')
-  salir.addEventListener('click', () => { salir.disabled = true; cerrarSesion() })
-  cabecera.append(salir)
+  // Menú desplegable del usuario
+  const menuUsuario = cabecera.querySelector('.menu-usuario')
+  if (menuUsuario) {
+    menuUsuario.addEventListener('click', () => menuUsuario.classList.toggle('abierto'))
+    document.addEventListener('click', (e) => {
+      if (!menuUsuario.contains(e.target) && !cabecera.querySelector('.desplegable-usuario').contains(e.target)) {
+        menuUsuario.classList.remove('abierto')
+      }
+    })
+  }
+
+  const btnCerrarSesion = cabecera.querySelector('.btn-cerrar-sesion-menu')
+  if (btnCerrarSesion) {
+    btnCerrarSesion.addEventListener('click', () => { btnCerrarSesion.disabled = true; cerrarSesion() })
+  }
+  // ---- REDISENO: fin ----
 }
 // ---- CU01: fin ----

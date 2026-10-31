@@ -3,11 +3,15 @@
 import CU01IniciarSesion from './casos_uso/CU01IniciarSesion.js'
 import CU02GestionarUsuarios from './casos_uso/CU02GestionarUsuarios.js'
 import CU03GestionarRolesPermisos from './casos_uso/CU03GestionarRolesPermisos.js'
-import Bitacora from './casos_uso/Bitacora.js' // <-- AGREGAR ESTA LÍNEA
+// ---- BITACORA: inicio ----
+import CUBitacora from './casos_uso/CUBitacora.js'
+// ---- BITACORA: fin ----
 
 export default [
   { ruta: '/login', codigo: 'CU01', vista: CU01IniciarSesion },
   { ruta: '/seguridad/usuarios', codigo: 'CU02', vista: CU02GestionarUsuarios },
   { ruta: '/seguridad/roles', codigo: 'CU03', vista: CU03GestionarRolesPermisos },
-  { ruta: '/seguridad/bitacora', codigo: 'RNF', vista: Bitacora } // <-- AGREGAR ESTA LÍNEA
+  // ---- BITACORA: inicio ----
+  { ruta: '/seguridad/bitacora', codigo: 'RNF', vista: CUBitacora },
+  // ---- BITACORA: fin ----
 ]

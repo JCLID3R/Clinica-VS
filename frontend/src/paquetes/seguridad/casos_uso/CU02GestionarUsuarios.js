@@ -7,6 +7,7 @@
  */
 import { el, aviso } from '../../../componentes/comunes.js'
 import { ErrorApi } from '../../../nucleo/api.js'
+import { icono } from '../../../componentes/iconos.js'
 import { listarUsuarios, crearUsuario, modificarUsuario, cambiarEstadoUsuario } from '../api.js'
 import { REQUISITOS_CONTRASENA, validarCrearUsuario, validarModificarUsuario } from '../schemas.js'
 
@@ -211,9 +212,9 @@ function mostrarFormulario(datos) {
       REQUISITOS_CONTRASENA.forEach((r) => {
         const cumple = r.cumple(c)
         const color = cumple ? '#0d7944' : '#999'
-        requisitos.append(
-          el('div', { style: `color:${color}; font-size:12px` }, (cumple ? '✓ ' : '○ ') + r.texto)
-        )
+        const div = el('div', { style: `color:${color}; font-size:12px; display:flex; gap:6px; align-items:center` })
+        div.append(cumple ? icono.cumplido(14) : icono.noCumplido(14), r.texto)
+        requisitos.append(div)
       })
     })
 

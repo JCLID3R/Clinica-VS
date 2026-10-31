@@ -12,8 +12,12 @@
  *   CU14  GET    /citas/pacientes/{id}/historial        Historial de citas de un paciente
  *   CU14  GET    /citas/{id}/cambios                    Cambios de estado de una cita
  *
- * Estado: PENDIENTE.
+ * Estado: IMPLEMENTADO (CU09).
  */
 import { api } from '../../nucleo/api.js'
+
+// ---- CU09: Programar cita ----
+export const programarCita = (datos) => api.post('/citas', datos)
+// ---- CU09: fin ----
 
 export default {}

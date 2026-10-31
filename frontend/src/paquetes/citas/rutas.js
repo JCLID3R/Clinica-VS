@@ -1,4 +1,5 @@
 /** Rutas del paquete citas: cada ruta muestra la pantalla de su caso de uso. */
+import CU08ConsultarDisponibilidad from '../agenda/casos_uso/CU08ConsultarDisponibilidad.js'
 import CU09ProgramarCita from './casos_uso/CU09ProgramarCita.js'
 import CU10ReprogramarCita from './casos_uso/CU10ReprogramarCita.js'
 import CU11CancelarCita from './casos_uso/CU11CancelarCita.js'
@@ -7,6 +8,7 @@ import CU13ConsultarAgendaMedica from './casos_uso/CU13ConsultarAgendaMedica.js'
 import CU14ConsultarHistorialPaciente from './casos_uso/CU14ConsultarHistorialPaciente.js'
 
 export default [
+  { ruta: '/citas/fichas', codigo: 'CU08', vista: CU08ConsultarDisponibilidad },
   { ruta: '/citas/programar', codigo: 'CU09', vista: CU09ProgramarCita },
   { ruta: '/citas/reprogramar', codigo: 'CU10', vista: CU10ReprogramarCita },
   { ruta: '/citas/cancelar', codigo: 'CU11', vista: CU11CancelarCita },
