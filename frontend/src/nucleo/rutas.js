@@ -16,7 +16,8 @@ const RUTAS = [{ ruta: '/', codigo: 'INICIO', vista: PaginaInicio }, ...segurida
 
 export function iniciarRutas(raiz) {
   const pintar = () => {
-    const ruta = location.hash.replace(/^#/, '') || '/'
+    const hashFull = location.hash.replace(/^#/, '') || '/'
+    const [ruta] = hashFull.split('?')
     const destino = RUTAS.find((r) => r.ruta === ruta)
     if (!destino) {
       location.hash = '#/'
