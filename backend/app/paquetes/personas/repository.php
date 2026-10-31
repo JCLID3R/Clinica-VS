@@ -308,4 +308,24 @@ function medicoVincularUsuario(int $idMedico, int $idUsuario): void
         [':usuario' => $idUsuario, ':id' => $idMedico]
     );
 }
+
+function medicoObtener(int $idMedico): ?array
+{
+    return BaseDatos::fila(
+        "SELECT id_medico, registro_profesional, nombres, apellidos, telefono, correo, estado
+         FROM medico WHERE id_medico = :id",
+        [':id' => $idMedico]
+    );
+}
 // ---- CU05: fin ----
+
+// ---- CU04: inicio ----
+function pacienteObtener(int $idPaciente): ?array
+{
+    return BaseDatos::fila(
+        "SELECT id_paciente, ci, nombres, apellidos, fecha_nacimiento, sexo, telefono, correo, direccion, estado
+         FROM paciente WHERE id_paciente = :id",
+        [':id' => $idPaciente]
+    );
+}
+// ---- CU04: fin ----

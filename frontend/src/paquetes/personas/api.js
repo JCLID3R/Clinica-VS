@@ -24,6 +24,7 @@ import { api } from '../../nucleo/api.js'
 
 // ---- CU04: inicio ----
 export const listarPacientes = (query = '') => api.get(`/personas/pacientes${query}`)
+export const buscarPaciente = (buscar) => api.get(`/personas/pacientes?buscar=${encodeURIComponent(buscar)}`)
 export const crearPaciente = (datos) => api.post('/personas/pacientes', datos)
 export const modificarPaciente = (id, datos) => api.put(`/personas/pacientes/${id}`, datos)
 export const cambiarEstadoPaciente = (id, estado) => api.patch(`/personas/pacientes/${id}/estado`, { estado })

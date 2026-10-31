@@ -3,7 +3,7 @@
  * Paquete agenda — acceso a datos (consultas SQL parametrizadas con PDO).
  * Solo este archivo escribe SQL del paquete. Usa App\Nucleo\BaseDatos::consultar(), fila(), ejecutar() y transaccion().
  *
- * Estado: IMPLEMENTADO (CU07).
+ * Estado: IMPLEMENTADO (CU07, CU08).
  */
 declare(strict_types=1);
 
@@ -140,5 +140,59 @@ function registrarBitacora(int $idUsuario, string $accion, int $idRegistro, stri
         ':d' => $detalle,
         ':t' => $tabla,
         ':ip' => $ip,
+    ]);
+}
+
+// ---- CU08: Consultar disponibilidad de fichas ----
+
+/** Obtener médicos activos de una especialidad */
+function medicosPorEspecialidad(int $idEspecialidad): array
+{
+    $sql = '
+        SELECT m.id_medico, m.nombres, m.apellidos, m.registro_profesional
+        FROM medico m
+        JOIN medico_especialidad me ON m.id_medico = me.id_medico
+        WHERE me.id_especialidad = :e
+            AND m.estado = :s
+        ORDER BY m.apellidos, m.nombres
+    ';
+    return BaseDatos::consultar($sql, [
+        ':e' => $idEspecialidad,
+        ':s' => 'activo',
+    ]);
+}
+
+/** Obtener bloques activos de un médico para una fecha específica (día de la semana). */
+function horariosDisponiblesPorMedico(int $idMedico, int $diaSemana): array
+{
+    $sql = '
+        SELECT id_horario, id_medico, hora_inicio, hora_fin, duracion_cita
+        FROM horario_atencion
+        WHERE id_medico = :m
+            AND dia_semana = :d
+            AND estado = :e
+        ORDER BY hora_inicio
+    ';
+    return BaseDatos::consultar($sql, [
+        ':m' => $idMedico,
+        ':d' => $diaSemana,
+        ':e' => 'activo',
+    ]);
+}
+
+/** Obtener citas del médico en una fecha (para marcar fichas como ocupadas) */
+function citasPorMedicoYFecha(int $idMedico, string $fecha): array
+{
+    $sql = '
+        SELECT hora_inicio, hora_fin, estado
+        FROM cita
+        WHERE id_medico = :m
+            AND fecha = :f
+            AND estado IN (\'Programada\', \'Confirmada\', \'Atendida\')
+        ORDER BY hora_inicio
+    ';
+    return BaseDatos::consultar($sql, [
+        ':m' => $idMedico,
+        ':f' => $fecha,
     ]);
 }

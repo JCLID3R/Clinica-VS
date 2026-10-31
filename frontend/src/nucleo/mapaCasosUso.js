@@ -94,16 +94,6 @@ export const PAQUETES = [
         "actores": [
           "Administrador"
         ]
-      },
-      {
-        "codigo": "CU08",
-        "nombre": "Consultar disponibilidad de citas",
-        "ruta": "/agenda/disponibilidad",
-        "ciclo": 1,
-        "actores": [
-          "Recepcionista",
-          "Paciente"
-        ]
       }
     ]
   },
@@ -111,6 +101,16 @@ export const PAQUETES = [
     "paquete": "citas",
     "titulo": "Citas: programación, estados, agenda e historial",
     "casos": [
+      {
+        "codigo": "CU08",
+        "nombre": "Fichas disponibles",
+        "ruta": "/citas/fichas",
+        "ciclo": 1,
+        "actores": [
+          "Recepcionista",
+          "Paciente"
+        ]
+      },
       {
         "codigo": "CU09",
         "nombre": "Programar cita médica",
@@ -220,7 +220,7 @@ export const PAQUETES = [
 export const PERMISO_POR_CU = {
   CU02: 'usuario.gestionar', CU03: 'rol.gestionar',
   CU04: 'paciente.gestionar', CU05: 'medico.gestionar', CU06: 'especialidad.gestionar',
-  CU07: 'horario.gestionar', CU08: 'agenda.consultar',
+  CU07: 'horario.gestionar', CU08: 'cita.programar',
   CU09: 'cita.programar', CU10: 'cita.programar', CU11: 'cita.programar', CU12: 'cita.asistencia',
   CU13: 'agenda.consultar', CU14: 'agenda.consultar',
   CU15: 'reporte.generar',

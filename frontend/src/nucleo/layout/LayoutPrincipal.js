@@ -36,6 +36,7 @@ export default function LayoutPrincipal(raiz, rutaActual) {
   const secciones = {
     'Inicio': [{ titulo: 'Panel principal', ruta: '/', iconoFn: () => icono.panelPrincipal() }],
     'Citas': [
+      { titulo: 'Fichas disponibles', ruta: '/citas/fichas', iconoFn: () => icono.programarCita() },
       { titulo: 'Programar cita', ruta: '/citas/programar', iconoFn: () => icono.programarCita() },
       { titulo: 'Agenda médica', ruta: '/citas/agenda', iconoFn: () => icono.agendaMedica() },
     ],

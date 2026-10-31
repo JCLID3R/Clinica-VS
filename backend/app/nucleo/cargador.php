@@ -14,7 +14,7 @@ require_once __DIR__ . '/Sesion.php';
 require_once __DIR__ . '/Validador.php';
 require_once __DIR__ . '/Cors.php';
 
-const PAQUETES = ['seguridad', 'personas', 'agenda', 'citas', 'reportes', 'portal_paciente'];
+const PAQUETES = ['panel', 'seguridad', 'personas', 'agenda', 'citas', 'reportes', 'portal_paciente'];
 
 foreach (PAQUETES as $paquete) {
     $dir = __DIR__ . "/../paquetes/{$paquete}";
