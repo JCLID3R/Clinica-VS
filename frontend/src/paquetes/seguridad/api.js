@@ -30,7 +30,15 @@ export const cambiarContrasena = (datos) => api.put('/seguridad/contrasena', dat
 // ---- CU01: fin ----
 
 // ---- CU02: inicio ----
-export const listarUsuarios = (filtro, rol, estado) => api.get('/seguridad/usuarios', { filtro, rol, estado })
+export const listarUsuarios = (filtro = '', rol = '', estado = '', pagina = 1, por_pagina = 25) => {
+  const params = new URLSearchParams()
+  if (filtro) params.append('filtro', filtro)
+  if (rol) params.append('rol', rol)
+  if (estado) params.append('estado', estado)
+  params.append('pagina', pagina)
+  params.append('por_pagina', por_pagina)
+  return api.get(`/seguridad/usuarios?${params.toString()}`)
+}
 export const crearUsuario = (datos) => api.post('/seguridad/usuarios', datos)
 export const modificarUsuario = (id, datos) => api.put(`/seguridad/usuarios/${id}`, datos)
 export const cambiarEstadoUsuario = (id, estado) => api.patch(`/seguridad/usuarios/${id}/estado`, { estado })

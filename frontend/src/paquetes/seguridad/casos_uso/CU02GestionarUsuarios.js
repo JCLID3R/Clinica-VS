@@ -8,7 +8,7 @@
 import { el, aviso } from '../../../componentes/comunes.js'
 import { ErrorApi } from '../../../nucleo/api.js'
 import { icono } from '../../../componentes/iconos.js'
-import { listarUsuarios, crearUsuario, modificarUsuario, cambiarEstadoUsuario } from '../api.js'
+import { listarUsuarios, crearUsuario, modificarUsuario, cambiarEstadoUsuario, listarRoles } from '../api.js'
 import { REQUISITOS_CONTRASENA, validarCrearUsuario, validarModificarUsuario } from '../schemas.js'
 
 export default function CU02GestionarUsuarios(contenedor) {
@@ -52,10 +52,20 @@ function crearBuscador(datos) {
     el('option', { value: 'bloqueado' }, 'Bloqueado'),
   ])
 
-  filtro.addEventListener('change', () => cargarUsuarios(datos))
-  filtro.addEventListener('input', () => cargarUsuarios(datos))
+  let timeoutFiltro
+  filtro.addEventListener('input', () => {
+    clearTimeout(timeoutFiltro)
+    timeoutFiltro = setTimeout(() => cargarUsuarios(datos), 300)
+  })
   rol.addEventListener('change', () => cargarUsuarios(datos))
   estado.addEventListener('change', () => cargarUsuarios(datos))
+
+  listarRoles().then((res) => {
+    rol.innerHTML = '<option value="">Todos los roles</option>'
+    res.roles.forEach((r) => {
+      rol.appendChild(el('option', { value: r.nombre }, r.nombre))
+    })
+  })
 
   return el('div', { class: 'formulario' }, [
     el('div', { class: 'campo' }, [el('label', {}, 'Buscar'), filtro]),
