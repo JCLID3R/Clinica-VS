@@ -188,7 +188,7 @@ final class Cu08ConsultarDisponibilidad
             }
 
             $horaFicha = str_pad((string)$hora, 2, '0', STR_PAD_LEFT) . ':' . str_pad((string)$min, 2, '0', STR_PAD_LEFT);
-            $horaFichaFin = str_pad((string)((int)($minuto + $duracion) / 60), 2, '0', STR_PAD_LEFT) . ':' . str_pad((string)(($minuto + $duracion) % 60), 2, '0', STR_PAD_LEFT);
+            $horaFichaFin = str_pad((string)intdiv($minuto + $duracion, 60), 2, '0', STR_PAD_LEFT) . ':' . str_pad((string)(($minuto + $duracion) % 60), 2, '0', STR_PAD_LEFT);
 
             $ocupada = false;
             foreach ($citas as $cita) {
