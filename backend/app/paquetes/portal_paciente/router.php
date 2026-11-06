@@ -15,4 +15,6 @@ return static function (Enrutador $r): void {
     $r->put('/portal/perfil', [Cu16GestionarPerfilPaciente::class, 'actualizarPerfil'], 'CU16 - Actualizar mi perfil');
     $r->get('/portal/citas', [Cu17ReservarMisCitas::class, 'misCitas'], 'CU17 - Mis citas por estado');
     $r->post('/portal/citas', [Cu17ReservarMisCitas::class, 'reservar'], 'CU17 - Reservar cita en línea');
+    $r->patch('/portal/citas/{id}/cancelar', [Cu17ReservarMisCitas::class, 'cancelar'], 'CU17 - Cancelar mi cita');
+    $r->patch('/portal/citas/{id}/reprogramar', [Cu17ReservarMisCitas::class, 'reprogramar'], 'CU17 - Reprogramar mi cita');
 };

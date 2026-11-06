@@ -1,133 +1,157 @@
 <?php
 /**
-* cu10_reprogramar_cita.php
  * CU10 - Reprogramar cita
- * Paquete: citas  ·  Ciclo 2  ·  Prioridad Alta  ·  Requisito: RF08
+ * Paquete: citas  ·  Ciclo 2  ·  Prioridad Alta  ·  Requisito: RF09
  *
- * Cambiar la fecha y hora de una cita Programada o Confirmada a un nuevo horario disponible del
- * médico, manteniendo la integridad y la trazabilidad.
+ * Buscar una cita en estado Programada o Confirmada y cambiar su fecha, hora o médico,
+ * respetando disponibilidad y validaciones. Libera la ficha anterior.
  *
  * Actores ........: Recepcionista
  * Permiso ........: cita.programar
- * Tablas .........: cita, horario_atencion, historial_estado_cita
+ * Tablas .........: cita, historial_estado_cita
  *
  * Precondición:
- *     La recepcionista inició sesión (CU01). La cita existe en estado Programada o Confirmada.
+ *     El usuario inició sesión (CU01). La cita existe en estado Programada o Confirmada.
  *
  * Flujo principal:
- *     1. La recepcionista busca la cita por código o por paciente.
- *     2. El sistema recupera los datos de la cita y verifica que su estado sea «Programada» o «Confirmada».
- *     3. La recepcionista selecciona una nueva fecha; el sistema muestra los horarios disponibles del médico (CU08).
- *     4. La recepcionista elige el nuevo horario y confirma.
- *     5. El sistema, dentro de una transacción, verifica nuevamente la disponibilidad, actualiza la fecha y hora y registra en el historial la fecha y hora anteriores.
- *     6. El sistema muestra el comprobante actualizado.
+ *     1. El usuario busca la cita por código o paciente.
+ *     2. Sistema muestra datos actuales.
+ *     3. Usuario selecciona nueva fecha, médico y ficha.
+ *     4. Sistema valida disponibilidad y bloqueos.
+ *     5. Al confirmar, cambia fecha/hora/médico y registra cambio en historial.
+ *     6. Ficha anterior queda libre, nueva queda ocupada.
  *
  * Excepciones / reglas que debe controlar:
- *     - Cita Atendida, Cancelada o con Inasistencia: no se puede reprogramar directamente (política: registrar una nueva cita).
- *     - El nuevo horario fue ocupado por otra cita.
- *     - Nueva fecha pasada o fuera del horario de atención.
+ *     - Cita Atendida o Cancelada: no puede reprogramarse.
+ *     - Horario no disponible o superposición (RN07, RN13).
+ *     - Bloqueo de agenda (RN06).
  *
  * Postcondición:
- *     La cita queda con la nueva fecha y hora; el horario anterior se libera y el cambio queda en el historial.
+ *     Cita con nuevas fecha/hora/médico, registro en historial, cambio en disponibilidad.
  *
  * Flujo de código: router.php -> este caso de uso -> politicas.php / repository.php -> BD.
- * Estado: PENDIENTE.
+ * Estado: IMPLEMENTADO.
  */
 declare(strict_types=1);
 
 namespace App\Paquetes\Citas\CasosUso;
 
-use App\Nucleo\{Peticion, Sesion, Respuesta, Validador, Errores};
-use App\Paquetes\Citas\{Repository, Politicas};
+use App\Nucleo\{BaseDatos, ErrorApi, Peticion, Sesion};
+use function App\Paquetes\Citas\Repository\{citaObtener, citaReprogramar};
+use function App\Paquetes\Agenda\Repository\{registrarBitacora};
+use function App\Paquetes\Seguridad\Politicas\{ipCliente};
 
 final class Cu10ReprogramarCita
 {
-    /**
-     * PATCH /api/v1/citas/{id}/reprogramar
-     * Body: { "id_horario": 123 }  (o { "fecha": "2026-11-05", "hora": "10:30" })
-     */
-    public static function reprogramar(Peticion $p): mixed
+    /** GET /api/v1/citas?buscar=&fecha=&estado= — Buscar citas */
+    public static function buscarCitas(Peticion $p): mixed
     {
-        // 1. Permiso
         Sesion::requerir('cita.programar');
 
-        // 2. Validar entrada
+        $buscar = $p->param('buscar', '');
+        $fecha = $p->param('fecha', '');
+        $estado = $p->param('estado', '');
+
+        $sql = '
+            SELECT c.id_cita, \'CM-\' || lpad(c.id_cita::text, 4, \'0\') AS codigo, c.fecha, c.hora_inicio, c.hora_fin, c.estado,
+                   p.id_paciente, p.nombres || \' \' || p.apellidos AS paciente, p.ci,
+                   m.id_medico, m.nombres || \' \' || m.apellidos AS medico,
+                   e.nombre AS especialidad
+            FROM cita c
+            JOIN paciente p ON c.id_paciente = p.id_paciente
+            JOIN medico m ON c.id_medico = m.id_medico
+            JOIN especialidad e ON c.id_especialidad = e.id_especialidad
+            WHERE 1=1
+        ';
+        $params = [];
+
+        if ($buscar) {
+            $search = '%' . $buscar . '%';
+            $sql .= ' AND (p.ci::text LIKE :buscar OR translate(lower(p.nombres || \' \' || p.apellidos), \'áéíóúüñ\', \'aeiouun\') LIKE translate(lower(:buscar), \'áéíóúüñ\', \'aeiouun\'))';
+            $params[':buscar'] = $search;
+        }
+        if ($fecha) {
+            $sql .= ' AND c.fecha = :fecha';
+            $params[':fecha'] = $fecha;
+        }
+        if ($estado) {
+            $sql .= ' AND c.estado = :estado';
+            $params[':estado'] = $estado;
+        }
+
+        $sql .= ' AND c.estado IN (\'Programada\', \'Confirmada\') ORDER BY c.fecha DESC, c.hora_inicio DESC';
+        $citas = BaseDatos::consultar($sql, $params);
+
+        return ['citas' => $citas];
+    }
+
+    /** PATCH /api/v1/citas/{id}/reprogramar — Reprogramar cita */
+    public static function reprogramar(Peticion $p): mixed
+    {
+        Sesion::requerir('cita.programar');
+
         $idCita = (int) $p->param('id');
-        if ($idCita <= 0) {
-            return Respuesta::error('ID de cita inválido', 400);
+        $body = $p->cuerpo();
+        $fecha = trim($body['fecha'] ?? '');
+        $horaInicio = trim($body['hora_inicio'] ?? '');
+        $horaFin = trim($body['hora_fin'] ?? '');
+        $idMedico = (int) ($body['id_medico'] ?? 0);
+
+        if (!$idCita) throw new ErrorApi(400, 'ID de cita requerido.');
+        if (!$fecha || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
+            throw new ErrorApi(400, 'Fecha requerida en formato YYYY-MM-DD.');
+        }
+        if (!$horaInicio || !preg_match('/^\d{2}:\d{2}$/', $horaInicio)) {
+            throw new ErrorApi(400, 'Hora de inicio en formato HH:MM.');
+        }
+        if (!$horaFin || !preg_match('/^\d{2}:\d{2}$/', $horaFin)) {
+            throw new ErrorApi(400, 'Hora de fin en formato HH:MM.');
+        }
+        if ($horaFin <= $horaInicio) {
+            throw new ErrorApi(400, 'Hora de fin debe ser posterior a hora de inicio.');
+        }
+        if (!$idMedico) throw new ErrorApi(400, 'Médico requerido.');
+
+        $cita = citaObtener($idCita);
+        if (!$cita) throw new ErrorApi(404, 'Cita no encontrada.');
+        if ($cita['estado'] !== 'Programada' && $cita['estado'] !== 'Confirmada') {
+            throw new ErrorApi(400, 'Solo citas Programada o Confirmada pueden reprogramarse.');
         }
 
-        $datos = $p->body();
-        $idHorario = (int) ($datos['id_horario'] ?? 0);
-        if ($idHorario <= 0) {
-            return Respuesta::error('Debe seleccionar un nuevo horario disponible', 400);
+        $hoy = date('Y-m-d');
+        if ($fecha < $hoy) {
+            throw new ErrorApi(400, 'No se puede programar en fechas pasadas.');
         }
 
-        // 3. Obtener la cita y validar estado (Programada o Confirmada)
-        $cita = Repository::obtenerCitaPorId($idCita);
-        if (!$cita) {
-            return Respuesta::error('Cita no encontrada', 404);
-        }
+        $s = Sesion::usuario();
+        $ip = ipCliente();
 
-        $estadosPermitidos = ['Programada', 'Confirmada'];
-        if (!in_array($cita['estado'], $estadosPermitidos, true)) {
-            return Respuesta::error(
-                'Solo se pueden reprogramar citas en estado Programada o Confirmada. ' .
-                'Para citas ' . $cita['estado'] . ', registre una nueva cita.',
-                409
-            );
-        }
-
-        // 4. Obtener el nuevo horario y validar que pertenezca al mismo médico
-        $nuevoHorario = Repository::obtenerHorarioPorId($idHorario);
-        if (!$nuevoHorario) {
-            return Respuesta::error('Horario no encontrado', 404);
-        }
-
-        if ((int) $nuevoHorario['id_medico'] !== (int) $cita['id_medico']) {
-            return Respuesta::error('El nuevo horario no pertenece al médico de la cita', 409);
-        }
-
-        // 5. Validar que la nueva fecha/hora no esté en el pasado
-        $fechaHoraNueva = $nuevoHorario['fecha'] . ' ' . $nuevoHorario['hora_inicio'];
-        if (strtotime($fechaHoraNueva) < time()) {
-            return Respuesta::error('No se puede reprogramar a una fecha/hora pasada', 409);
-        }
-
-        // 6. Validar disponibilidad (que no haya otra cita en ese horario)
-        if (Repository::horarioOcupado($idHorario, $idCita)) {
-            return Respuesta::error('El horario seleccionado ya está ocupado por otra cita', 409);
-        }
-
-        // 7. Transacción: actualizar cita + registrar historial
         try {
-            Repository::iniciarTransaccion();
+            BaseDatos::transaccion(function () use ($idCita, $idMedico, $fecha, $horaInicio, $horaFin, $s) {
+                BaseDatos::ejecutar('SELECT set_config(\'app.id_usuario\', :id, true)', [':id' => (string) $s['id_usuario']]);
+                citaReprogramar($idCita, $fecha, $horaInicio, $horaFin, $idMedico);
+            }, $s['id_usuario']);
 
-            $datosAnteriores = [
-                'fecha' => $cita['fecha'],
-                'hora'  => $cita['hora'],
-            ];
+            $citaActualizada = citaObtener($idCita);
 
-            Repository::actualizarCitaHorario($idCita, $idHorario, $datosAnteriores);
-
-            Repository::registrarHistorial(
+            registrarBitacora(
+                $s['id_usuario'],
+                'CITA_REPROGRAMAR',
                 $idCita,
-                'Reprogramada',
-                'Reprogramación: ' . $datosAnteriores['fecha'] . ' ' . $datosAnteriores['hora'] .
-                ' → ' . $nuevoHorario['fecha'] . ' ' . $nuevoHorario['hora_inicio']
+                "Cita {$cita['codigo']} reprogramada de {$cita['fecha']} a {$fecha} {$horaInicio}-{$horaFin}",
+                'cita',
+                $ip
             );
 
-            Repository::confirmarTransaccion();
-
-            // 8. Devolver comprobante actualizado
-            $citaActualizada = Repository::obtenerCitaPorId($idCita);
-            return Respuesta::exito([
-                'mensaje' => 'Cita reprogramada correctamente',
-                'cita'    => $citaActualizada,
-            ]);
-        } catch (\Throwable $e) {
-            Repository::revertirTransaccion();
-            return Respuesta::error('Error al reprogramar la cita: ' . $e->getMessage(), 500);
+            return [
+                'mensaje' => 'Cita reprogramada correctamente.',
+                'cita' => $citaActualizada,
+            ];
+        } catch (\PDOException $e) {
+            if ($e->getCode() === '23P01') {
+                throw new ErrorApi(409, 'El horario ya no está disponible. Conflicto de citas.');
+            }
+            throw $e;
         }
     }
 }

@@ -34,14 +34,90 @@ declare(strict_types=1);
 
 namespace App\Paquetes\Citas\CasosUso;
 
-use App\Nucleo\{NoImplementado, Peticion, Sesion};
+use App\Nucleo\{BaseDatos, ErrorApi, Peticion, Sesion};
+use function App\Paquetes\Citas\Repository\{agendaPorMedico, bloqueosEnRango, medicoPorUsuario, citaObtener, historialPorCita, citasPorPaciente};
+use function App\Paquetes\Personas\Repository\{pacientePorUsuario};
 
 final class Cu13ConsultarAgendaMedica
 {
-    /** GET /api/v1/citas/agenda — Agenda médica (?id_medico=&fecha=&estado=) */
+    /** GET /api/v1/citas/agenda — Agenda médica (?id_medico=&desde=&hasta=&estado=) */
     public static function consultar(Peticion $p): mixed
     {
         Sesion::requerir('agenda.consultar');
-        throw new NoImplementado('CU13');
+
+        $s = Sesion::usuario();
+        $idMedico = $p->param('id_medico') ? (int) $p->param('id_medico') : null;
+        $desde = $p->param('desde', date('Y-m-d'));
+        $hasta = $p->param('hasta', date('Y-m-d', strtotime('+7 days')));
+
+        if ($s['rol'] === 'Médico') {
+            $medico = medicoPorUsuario($s['id_usuario']);
+            if (!$medico) throw new ErrorApi(403, 'Usuario no asociado a un médico.');
+            $idMedico = $medico['id_medico'];
+        }
+        if (!$idMedico) throw new ErrorApi(400, 'Médico requerido.');
+
+        $citas = agendaPorMedico($idMedico, $desde, $hasta);
+        $bloqueos = bloqueosEnRango($desde, $hasta, $idMedico);
+
+        return [
+            'citas' => $citas,
+            'bloqueos' => $bloqueos,
+            'desde' => $desde,
+            'hasta' => $hasta,
+        ];
+    }
+}
+
+final class Cu14ConsultarHistorialPaciente
+{
+    /** GET /api/v1/citas/pacientes/{id}/historial — Historial de citas de un paciente */
+    public static function historial(Peticion $p): mixed
+    {
+        Sesion::requerir('agenda.consultar');
+
+        $idPaciente = (int) $p->param('id');
+        $estado = $p->param('estado') ?: null;
+        $desde = $p->param('desde') ?: null;
+        $hasta = $p->param('hasta') ?: null;
+
+        if (!$idPaciente) throw new ErrorApi(400, 'ID de paciente requerido.');
+
+        $citas = citasPorPaciente($idPaciente, $estado, $desde, $hasta);
+
+        $totales = [
+            'Programada' => 0,
+            'Confirmada' => 0,
+            'Atendida' => 0,
+            'Cancelada' => 0,
+            'Inasistencia' => 0,
+        ];
+        foreach ($citas as $c) {
+            $totales[$c['estado']]++;
+        }
+
+        return [
+            'citas' => $citas,
+            'totales' => $totales,
+        ];
+    }
+
+    /** GET /api/v1/citas/{id}/cambios — Cambios de estado de una cita */
+    public static function cambios(Peticion $p): mixed
+    {
+        Sesion::requerir('agenda.consultar');
+
+        $idCita = (int) $p->param('id');
+        if (!$idCita) throw new ErrorApi(400, 'ID de cita requerido.');
+
+        $cita = citaObtener($idCita);
+        if (!$cita) throw new ErrorApi(404, 'Cita no encontrada.');
+
+        $historial = historialPorCita($idCita);
+
+        return [
+            'cita' => $cita,
+            'historial' => $historial,
+        ];
     }
 }
