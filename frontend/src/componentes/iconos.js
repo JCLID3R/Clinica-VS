@@ -40,6 +40,8 @@ export const icono = {
   panelPrincipal: (size = 20) => svg('<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>', size),
   programarCita: (size = 20) => svg('<rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 10h18M12 13.5v5M9.5 16h5"/>', size),
   agendaMedica: (size = 20) => svg('<rect x="5" y="3.5" width="14" height="18" rx="2.5"/><path d="M9 3.5V2.5h6v1M9 9h6M9 13h6M9 17h3"/>', size),
+  historialPaciente: (size = 20) => svg('<path d="M13 2.5h-9a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9z"/><path d="M13 2.5v5.5h5.5M7 9h6M7 13h6M7 17h4"/>', size),
+  reportes: (size = 20) => svg('<path d="M3 3h18v17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M7 7h10M7 11h8M7 15h6"/>', size),
   pacientes: (size = 20) => svg('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.8a3.4 3.4 0 0 1 0 6.4M18.5 14.8c1.7.8 2.8 2.5 3 5.2"/>', size),
   medicos: (size = 20) => svg('<path d="M6 3v6a5 5 0 0 0 10 0V3M6 3H4.5M16 3h1.5M11 14v2.5a4.5 4.5 0 0 0 9 0V14"/><circle cx="20" cy="12" r="2"/>', size),
   especialidades: (size = 20) => svg('<path d="M12 20.5s-8-4.6-8-10.5a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.9-8 10.5-8 10.5z"/><path d="M8.5 12h2l1-2 1.5 4 1-2h1.5"/>', size),

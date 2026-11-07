@@ -24,6 +24,7 @@ return static function (Enrutador $r): void {
     $r->get('/citas/inasistencias-pendientes', [Cu12RegistrarAsistencia::class, 'inasistenciasPendientes'], 'CU12 - Citas sin marcar de días pasados');
     $r->post('/citas/inasistencias-pendientes', [Cu12RegistrarAsistencia::class, 'marcarInasistencias'], 'CU12 - Marcar lote de inasistencias');
     $r->get('/citas/agenda', [Cu13ConsultarAgendaMedica::class, 'consultar'], 'CU13 - Agenda médica (?id_medico=&desde=&hasta=&estado=)');
+    $r->get('/citas/pacientes', [Cu14ConsultarHistorialPaciente::class, 'buscarPacientes'], 'CU14 - Buscar pacientes para historial (?buscar=)');
     $r->get('/citas/pacientes/{id}/historial', [Cu14ConsultarHistorialPaciente::class, 'historial'], 'CU14 - Historial de citas de un paciente');
     $r->get('/citas/{id}/cambios', [Cu14ConsultarHistorialPaciente::class, 'cambios'], 'CU14 - Cambios de estado de una cita');
 };

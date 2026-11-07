@@ -37,4 +37,14 @@ export const obtenerInasistenciasPendientes = () => api.get('/citas/inasistencia
 export const marcarInasistencias = (datos) => api.post('/citas/inasistencias-pendientes', datos)
 // ---- CU12: fin ----
 
+// ---- CU13: Consultar agenda médica ----
+export const obtenerAgendaMedica = (query) => api.get(`/citas/agenda${query}`)
+// ---- CU13: fin ----
+
+// ---- CU14: Consultar historial paciente ----
+export const buscarPacientesParaHistorial = (query) => api.get(`/citas/pacientes${query}`)
+export const obtenerHistorialPaciente = (idPaciente, query) => api.get(`/citas/pacientes/${idPaciente}/historial${query}`)
+export const obtenerCambiosCita = (idCita) => api.get(`/citas/${idCita}/cambios`)
+// ---- CU14: fin ----
+
 export default {}

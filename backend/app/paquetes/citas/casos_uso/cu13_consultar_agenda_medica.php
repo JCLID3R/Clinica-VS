@@ -46,11 +46,11 @@ final class Cu13ConsultarAgendaMedica
         Sesion::requerir('agenda.consultar');
 
         $s = Sesion::usuario();
-        $idMedico = $p->param('id_medico') ? (int) $p->param('id_medico') : null;
-        $desde = $p->param('desde', date('Y-m-d'));
-        $hasta = $p->param('hasta', date('Y-m-d', strtotime('+7 days')));
+        $idMedico = $p->consulta('id_medico') ? (int) $p->consulta('id_medico') : null;
+        $desde = $p->consulta('desde') ?? date('Y-m-d');
+        $hasta = $p->consulta('hasta') ?? date('Y-m-d', strtotime('+7 days'));
 
-        if ($s['rol'] === 'Médico') {
+        if (strtolower($s['rol']) === 'medico') {
             $medico = medicoPorUsuario($s['id_usuario']);
             if (!$medico) throw new ErrorApi(403, 'Usuario no asociado a un médico.');
             $idMedico = $medico['id_medico'];

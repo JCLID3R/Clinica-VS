@@ -72,9 +72,10 @@ function citaBuscar(?string $buscar = null, ?string $fecha = null, ?string $esta
     $params = [];
 
     if ($buscar) {
-        $search = translate(lower($buscar), 'áéíóúüñ', 'aeiouun');
-        $sql .= ' AND (translate(lower(p.ci::text), \'áéíóúüñ\', \'aeiouun\') LIKE :buscar OR translate(lower(p.nombres || \' \' || p.apellidos), \'áéíóúüñ\', \'aeiouun\') LIKE :buscar)';
-        $params[':buscar'] = '%' . $search . '%';
+        $search = '%' . strtolower(strtr($buscar, 'áéíóúüñ', 'aeiouun')) . '%';
+        $sql .= ' AND (translate(lower(p.ci::text), \'áéíóúüñ\', \'aeiouun\') LIKE :b1 OR translate(lower(p.nombres || \' \' || p.apellidos), \'áéíóúüñ\', \'aeiouun\') LIKE :b2)';
+        $params[':b1'] = $search;
+        $params[':b2'] = $search;
     }
     if ($fecha) {
         $sql .= ' AND c.fecha = :fecha';
@@ -218,10 +219,12 @@ function agendaPorMedico(int $idMedico, string $desde, string $hasta): array
     $sql = '
         SELECT c.id_cita, \'CM-\' || lpad(c.id_cita::text, 4, \'0\') AS codigo, c.fecha, c.hora_inicio, c.hora_fin, c.estado,
                p.nombres || \' \' || p.apellidos AS paciente, p.ci,
-               e.nombre AS especialidad
+               e.nombre AS especialidad,
+               m.nombres || \' \' || m.apellidos AS nombre_medico
         FROM cita c
         JOIN paciente p ON c.id_paciente = p.id_paciente
         JOIN especialidad e ON c.id_especialidad = e.id_especialidad
+        JOIN medico m ON c.id_medico = m.id_medico
         WHERE c.id_medico = :m AND c.fecha BETWEEN :desde AND :hasta AND c.estado <> \'Cancelada\'
         ORDER BY c.fecha, c.hora_inicio
     ';
@@ -243,15 +246,17 @@ function bloqueosEnRango(string $desde, string $hasta, ?int $idMedico = null): a
 
 // ---- CU14: Historial del paciente ----
 
-/** Citas de un paciente */
-function citasPorPaciente(int $idPaciente, ?string $estado = null, ?string $desde = null, ?string $hasta = null): array
+/** Citas de un paciente (opcionalmente filtradas por médico) */
+function citasPorPaciente(int $idPaciente, ?string $estado = null, ?string $desde = null, ?string $hasta = null, ?int $idMedico = null): array
 {
     $sql = '
         SELECT c.id_cita, \'CM-\' || lpad(c.id_cita::text, 4, \'0\') AS codigo, c.fecha, c.hora_inicio, c.hora_fin, c.estado,
-               m.nombres || \' \' || m.apellidos AS medico, e.nombre AS especialidad
+               m.nombres || \' \' || m.apellidos AS medico, e.nombre AS especialidad,
+               p.telefono
         FROM cita c
         JOIN medico m ON c.id_medico = m.id_medico
         JOIN especialidad e ON c.id_especialidad = e.id_especialidad
+        JOIN paciente p ON c.id_paciente = p.id_paciente
         WHERE c.id_paciente = :p
     ';
     $params = [':p' => $idPaciente];
@@ -264,6 +269,10 @@ function citasPorPaciente(int $idPaciente, ?string $estado = null, ?string $desd
         $sql .= ' AND c.fecha BETWEEN :desde AND :hasta';
         $params[':desde'] = $desde;
         $params[':hasta'] = $hasta;
+    }
+    if ($idMedico) {
+        $sql .= ' AND c.id_medico = :m';
+        $params[':m'] = $idMedico;
     }
 
     $sql .= ' ORDER BY c.fecha DESC, c.hora_inicio DESC';
@@ -282,6 +291,29 @@ function historialPorCita(int $idCita): array
         ORDER BY h.fecha DESC
     ';
     return BaseDatos::consultar($sql, [':id' => $idCita]);
+}
+
+// ---- CU14: Buscar pacientes para historial ----
+
+/** Buscar pacientes: si es médico, devuelve pacientes con citas de ese médico; si no, devuelve pacientes activos */
+function pacientesBuscarParaHistorial(?int $idMedico = null, ?string $buscar = null): array
+{
+    $sql = 'SELECT p.id_paciente, p.ci, p.nombres, p.apellidos, p.telefono FROM paciente p WHERE p.estado = \'activo\'';
+    $params = [];
+
+    if ($buscar) {
+        $sql .= ' AND (p.ci::text LIKE :b1 OR translate(lower(p.nombres || \' \' || p.apellidos), \'áéíóúüñÁÉÍÓÚÜÑ\', \'aeiouunaeiouun\') LIKE :b2)';
+        $params[':b1'] = $buscar . '%';
+        $params[':b2'] = '%' . strtolower(strtr($buscar, 'áéíóúüñÁÉÍÓÚÜÑ', 'aeiouunaeiouun')) . '%';
+    }
+
+    if ($idMedico !== null) {
+        $sql .= ' AND EXISTS (SELECT 1 FROM cita c WHERE c.id_paciente = p.id_paciente AND c.id_medico = :b3)';
+        $params[':b3'] = $idMedico;
+    }
+
+    $sql .= ' ORDER BY p.nombres ASC LIMIT 20';
+    return BaseDatos::consultar($sql, $params);
 }
 
 // ---- CU13: Médico por usuario ----

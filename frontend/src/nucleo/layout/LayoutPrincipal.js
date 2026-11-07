@@ -42,6 +42,7 @@ export default function LayoutPrincipal(raiz, rutaActual) {
       { titulo: 'Cancelar cita', ruta: '/citas/cancelar', iconoFn: () => icono.cancelarCita() },
       { titulo: 'Registrar asistencia', ruta: '/citas/asistencia', iconoFn: () => icono.registrarAsistencia() },
       { titulo: 'Agenda médica', ruta: '/citas/agenda', iconoFn: () => icono.agendaMedica() },
+      { titulo: 'Historial del paciente', ruta: '/citas/historial', iconoFn: () => icono.historialPaciente() },
     ],
     'Registros': [
       { titulo: 'Pacientes', ruta: '/personas/pacientes', iconoFn: () => icono.pacientes() },
@@ -53,6 +54,9 @@ export default function LayoutPrincipal(raiz, rutaActual) {
       { titulo: 'Usuarios', ruta: '/seguridad/usuarios', iconoFn: () => icono.usuarios() },
       { titulo: 'Roles y permisos', ruta: '/seguridad/roles', iconoFn: () => icono.rolesPermisos() },
       { titulo: 'Bitácora', ruta: '/seguridad/bitacora', iconoFn: () => icono.bitacora() },
+    ],
+    'Reportes': [
+      { titulo: 'Generar reportes', ruta: '/reportes', iconoFn: () => icono.reportes() },
     ],
   }
 

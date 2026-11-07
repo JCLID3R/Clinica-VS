@@ -106,7 +106,7 @@ async function cargarPacientes(datos) {
 
     tbody.replaceChildren(...resp.pacientes.map(pac => {
       const btnEditar = el('button', { class: 'btn secundario', type: 'button', style: 'font-size: 12px; padding: 8px 12px;' }, 'Editar')
-      const btnVerCitas = el('button', { class: 'btn secundario', type: 'button', style: 'font-size: 12px; padding: 8px 12px;' }, 'Ver citas')
+      const btnHistorial = el('button', { class: 'btn secundario', type: 'button', style: 'font-size: 12px; padding: 8px 12px;' }, 'Historial')
       const btnDesactivar = el('button', { class: 'btn peligro', type: 'button', style: 'font-size: 12px; padding: 8px 12px;' }, pac.estado === 'activo' ? 'Desactivar' : 'Activar')
 
       btnEditar.addEventListener('click', () => {
@@ -114,8 +114,8 @@ async function cargarPacientes(datos) {
         mostrarFormulario(datos)
       })
 
-      btnVerCitas.addEventListener('click', () => {
-        verCitasPaciente(pac.id_paciente, `${pac.nombres} ${pac.apellidos}`)
+      btnHistorial.addEventListener('click', () => {
+        window.location.hash = `#/citas/historial?id_paciente=${pac.id_paciente}`
       })
 
       btnDesactivar.addEventListener('click', () => {
@@ -127,35 +127,9 @@ async function cargarPacientes(datos) {
         class: `estado ${pac.estado === 'activo' ? 'ok' : 'inactivo'}`
       }, pac.estado === 'activo' ? 'Activo' : 'Inactivo')
 
-      const celdaAcciones = el('td', { style: 'display: flex; gap: 8px; align-items: center; flex-wrap: wrap;' }, [btnEditar, btnVerCitas, btnDesactivar])
+      const celdaAcciones = el('td', { class: 'flex-acciones-tabla' }, [btnEditar, btnHistorial, btnDesactivar])
 
       const edad = pac.fecha_nacimiento ? Math.floor((new Date() - new Date(pac.fecha_nacimiento)) / (365.25 * 24 * 60 * 60 * 1000)) : '-'
-
-      return el('tr', {}, [
-        el('td', {}, pac.ci),
-        el('td', {}, `${pac.nombres} ${pac.apellidos}`),
-        el('td', {}, pac.telefono || '(sin teléfono)'),
-        el('td', {}, `${edad} años`),
-        el('td', {}, etiquetaEstado),
-        celdaAcciones,
-      ])
-    }))
-    tbody.replaceChildren(...resp.pacientes.map(pac => {
-      const btnEditar = el('button', { class: 'btn secundario', type: 'button', style: 'font-size: 12px; padding: 8px 12px;' }, 'Editar')
-      const btnVerCitas = el('button', { class: 'btn secundario', type: 'button', style: 'font-size: 12px; padding: 8px 12px;' }, 'Ver citas')
-      const btnDesactivar = el('button', { class: 'btn peligro', type: 'button', style: 'font-size: 12px; padding: 8px 12px;' }, pac.estado === 'activo' ? 'Desactivar' : 'Activar')
-
-      btnEditar.addEventListener('click', () => {
-        datos.pacienteEditar = pac
-        mostrarFormulario(datos)
-      })
-
-      btnVerCitas.addEventListener('click', () => verCitasPaciente(pac.id_paciente, `${pac.nombres} ${pac.apellidos}`))
-      btnDesactivar.addEventListener('click', () => cambiarEstadoPac(pac.id_paciente, pac.estado === 'activo' ? 'inactivo' : 'activo', datos))
-
-      const etiquetaEstado = el('span', { class: `estado ${pac.estado === 'activo' ? 'ok' : 'inactivo'}` }, pac.estado === 'activo' ? 'Activo' : 'Inactivo')
-      const edad = pac.edad || '-'
-      const celdaAcciones = el('td', { style: 'display: flex; gap: 8px; align-items: center; flex-wrap: wrap;' }, [btnEditar, btnVerCitas, btnDesactivar])
 
       return el('tr', {}, [
         el('td', {}, pac.ci),
