@@ -36,8 +36,7 @@ declare(strict_types=1);
 namespace App\Paquetes\Citas\CasosUso;
 
 use App\Nucleo\{BaseDatos, ErrorApi, Peticion, Sesion};
-use function App\Paquetes\Citas\Repository\{citasDelDia, citaObtener, citaCambiarEstado, citasPendientesAnteriores};
-use function App\Paquetes\Personas\Repository\{medicoPorUsuario};
+use function App\Paquetes\Citas\Repository\{citasDelDia, citaObtener, citaCambiarEstado, citasPendientesAnteriores, medicoPorUsuario};
 use function App\Paquetes\Agenda\Repository\{registrarBitacora};
 use function App\Paquetes\Seguridad\Politicas\{ipCliente};
 
@@ -48,9 +47,9 @@ final class Cu12RegistrarAsistencia
     {
         Sesion::requerir('cita.asistencia');
 
-        $fecha = $p->param('fecha', date('Y-m-d'));
-        $idMedico = $p->param('id_medico') ? (int) $p->param('id_medico') : null;
-        $estado = $p->param('estado') ? trim($p->param('estado')) : null;
+        $fecha = $p->consulta('fecha') ?: date('Y-m-d');
+        $idMedico = $p->consulta('id_medico') ? (int) $p->consulta('id_medico') : null;
+        $estado = $p->consulta('estado') ? trim($p->consulta('estado')) : null;
 
         $citas = \App\Paquetes\Citas\Repository\citasDelDia($fecha, $idMedico, $estado);
 

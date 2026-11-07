@@ -6,7 +6,7 @@
  * Estado: IMPLEMENTADO.
  */
 import { el } from '../../../componentes/comunes.js'
-import { listarEspecialidades } from '../../personas/api.js'
+import { listarEspecialidadesActivas } from '../../personas/api.js'
 import { listarMedicosPorEspecialidad, consultarDisponibilidad } from '../api.js'
 import { SelectorFichas } from '../componentes/SelectorFichas.js'
 
@@ -16,7 +16,7 @@ export default function CU08ConsultarDisponibilidad(pantalla) {
 
   let especialidadesCache = []
 
-  listarEspecialidades(1, 100).then((res) => {
+  listarEspecialidadesActivas().then((res) => {
     especialidadesCache = res.especialidades || []
     ui.selectEspecialidad.innerHTML = ''
     ui.selectEspecialidad.appendChild(el('option', { value: '' }, 'Selecciona especialidad...'))
@@ -76,8 +76,18 @@ export default function CU08ConsultarDisponibilidad(pantalla) {
 }
 
 function crearUI() {
-  const hoy = new Date().toISOString().split('T')[0]
-  const max30 = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  const d = new Date()
+  const año = d.getFullYear()
+  const mes = String(d.getMonth() + 1).padStart(2, '0')
+  const día = String(d.getDate()).padStart(2, '0')
+  const hoy = `${año}-${mes}-${día}`
+
+  const d30 = new Date()
+  d30.setDate(d30.getDate() + 30)
+  const año30 = d30.getFullYear()
+  const mes30 = String(d30.getMonth() + 1).padStart(2, '0')
+  const día30 = String(d30.getDate()).padStart(2, '0')
+  const max30 = `${año30}-${mes30}-${día30}`
 
   const selectEspecialidad = el('select', { id: 'cu08-especialidad' })
   const selectMedico = el('select', { id: 'cu08-medico' })

@@ -40,7 +40,8 @@ function citaInsertar(int $idPaciente, int $idMedico, int $idEspecialidad, strin
 function citaObtener(int $idCita): ?array
 {
     $sql = '
-        SELECT c.*, p.nombres AS paciente_nombres, p.apellidos AS paciente_apellidos, p.ci,
+        SELECT c.*, \'CM-\' || lpad(c.id_cita::text, 4, \'0\') AS codigo,
+               p.nombres AS paciente_nombres, p.apellidos AS paciente_apellidos, p.ci,
                m.nombres AS medico_nombres, m.apellidos AS medico_apellidos, m.registro_profesional,
                e.nombre AS especialidad_nombre
         FROM cita c

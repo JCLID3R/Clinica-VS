@@ -7,7 +7,7 @@
  */
 import { el } from '../../../componentes/comunes.js'
 import { buscarPaciente } from '../../personas/api.js'
-import { listarEspecialidades } from '../../personas/api.js'
+import { listarEspecialidadesActivas } from '../../personas/api.js'
 import { listarMedicosPorEspecialidad, consultarDisponibilidad } from '../../agenda/api.js'
 import { SelectorFichas } from '../../agenda/componentes/SelectorFichas.js'
 import { programarCita } from '../api.js'
@@ -94,7 +94,7 @@ export default function CU09ProgramarCita(pantalla) {
     selectEspecialidad.appendChild(el('option', { value: '' }, 'Selecciona especialidad...'))
 
     try {
-      const res = await listarEspecialidades(1, 100)
+      const res = await listarEspecialidadesActivas()
       res.especialidades.forEach((esp) => {
         selectEspecialidad.appendChild(el('option', { value: esp.id_especialidad }, esp.nombre))
       })
@@ -159,8 +159,18 @@ export default function CU09ProgramarCita(pantalla) {
 
   async function mostrarPaso4() {
     paso = 4
-    const hoy = new Date().toISOString().split('T')[0]
-    const max30 = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    const d = new Date()
+    const año = d.getFullYear()
+    const mes = String(d.getMonth() + 1).padStart(2, '0')
+    const día = String(d.getDate()).padStart(2, '0')
+    const hoy = `${año}-${mes}-${día}`
+
+    const d30 = new Date()
+    d30.setDate(d30.getDate() + 30)
+    const año30 = d30.getFullYear()
+    const mes30 = String(d30.getMonth() + 1).padStart(2, '0')
+    const día30 = String(d30.getDate()).padStart(2, '0')
+    const max30 = `${año30}-${mes30}-${día30}`
 
     const selectFecha = el('input', { type: 'date', min: hoy, max: max30 })
     const contenedorFichas = el('div', { id: 'cu09-fichas' })

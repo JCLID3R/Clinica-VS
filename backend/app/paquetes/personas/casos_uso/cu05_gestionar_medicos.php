@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace App\Paquetes\Personas\CasosUso;
 
-use App\Nucleo\{Peticion, Sesion};
+use App\Nucleo\{ErrorApi, Peticion, Sesion};
 use function App\Paquetes\Personas\Repository\{especialidadListarActivas};
 
 final class Cu05GestionarMedicos
@@ -64,10 +64,15 @@ final class Cu05GestionarMedicos
         return Cu05Medicos::cambiarEstado($p);
     }
 
-    /** GET /api/v1/personas/especialidades/activas — Listar especialidades activas */
+    /** GET /api/v1/personas/especialidades/activas — Listar especialidades activas (para CU08, CU09) */
     public static function especialidadesActivas(Peticion $p): mixed
     {
-        Sesion::requerir('medico.gestionar');
+        $usuario = Sesion::usuario();
+        $permisos = $usuario['permisos'] ?? [];
+        $tienePermiso = in_array('cita.programar', $permisos) || in_array('perfil.paciente', $permisos) || in_array('medico.gestionar', $permisos);
+        if (!$tienePermiso) {
+            throw new ErrorApi(403, 'No tiene permiso para esta operación.');
+        }
         return [
             'especialidades' => especialidadListarActivas(),
         ];
@@ -75,7 +80,7 @@ final class Cu05GestionarMedicos
 }
 
 // ---- CU05: inicio ----
-use App\Nucleo\{BaseDatos, Correo, ErrorApi};
+use App\Nucleo\{BaseDatos, Correo};
 use function App\Paquetes\Personas\Schemas\{
     validar_listar_medicos, validar_registrar_medico, validar_modificar_medico,
     validar_cambiar_estado_medico, validar_crear_usuario_medico

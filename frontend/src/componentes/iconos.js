@@ -74,6 +74,8 @@ export const icono = {
   // Notificaciones y estados
   campana: (size = 20) => svg('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/>', size),
   asistencia: (size = 20) => svg('<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/>', size),
+  registrarAsistencia: (size = 20) => svg('<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/>', size),
+  cancelarCita: (size = 20) => svg('<circle cx="12" cy="12" r="9"/><path d="M5 5l14 14M19 5L5 19"/>', size),
   cumplido: (size = 16) => svg('<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/>', size),
   noCumplido: (size = 16) => svg('<circle cx="12" cy="12" r="8"/>', size),
 }

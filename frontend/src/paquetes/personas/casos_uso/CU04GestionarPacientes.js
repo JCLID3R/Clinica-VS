@@ -360,13 +360,14 @@ async function verCitasPaciente(id, nombrePaciente) {
         el('th', {}, 'Estado'),
       ])),
       el('tbody', {}, citas.length === 0 ? el('tr', {}, el('td', { colSpan: '6', style: 'text-align: center; padding: 20px;' }, 'Sin citas registradas')) : citas.map(c => {
-        const fecha = new Date(c.fecha).toLocaleDateString('es-ES')
+        const [año, mes, día] = c.fecha.split('-')
+        const fecha = `${día}/${mes}/${año}`
         const hora = c.hora_inicio.slice(0, 5)
         return el('tr', {}, [
           el('td', {}, c.codigo),
           el('td', {}, fecha),
           el('td', {}, hora),
-          el('td', {}, `${c.medico_nombres} ${c.medico_apellidos}`),
+          el('td', {}, c.medico),
           el('td', {}, c.especialidad),
           el('td', {}, el('span', { class: `estado estado-${c.estado}` }, c.estado)),
         ])

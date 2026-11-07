@@ -136,7 +136,7 @@ export const PAQUETES = [
         "ciclo": 2,
         "actores": [
           "Recepcionista",
-          "Paciente"
+          "Administrador"
         ]
       },
       {

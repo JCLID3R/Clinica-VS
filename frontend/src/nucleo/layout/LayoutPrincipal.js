@@ -6,7 +6,7 @@
  * - En celular o tablet (hasta 900 px) el menú empieza oculto y se abre encima del contenido;
  *   se cierra con el botón, tocando fuera, con la tecla Esc o al elegir una opción.
  */
-import { PAQUETES } from '../mapaCasosUso.js'
+import { PAQUETES, PERMISO_POR_CU } from '../mapaCasosUso.js'
 import { NOMBRE_SISTEMA } from '../config.js'
 import { obtenerUsuario } from '../auth/sesion.js'
 import { el } from '../../componentes/comunes.js'
@@ -38,6 +38,9 @@ export default function LayoutPrincipal(raiz, rutaActual) {
     'Citas': [
       { titulo: 'Fichas disponibles', ruta: '/citas/fichas', iconoFn: () => icono.programarCita() },
       { titulo: 'Programar cita', ruta: '/citas/programar', iconoFn: () => icono.programarCita() },
+      { titulo: 'Reprogramar cita', ruta: '/citas/reprogramar', iconoFn: () => icono.programarCita() },
+      { titulo: 'Cancelar cita', ruta: '/citas/cancelar', iconoFn: () => icono.cancelarCita() },
+      { titulo: 'Registrar asistencia', ruta: '/citas/asistencia', iconoFn: () => icono.registrarAsistencia() },
       { titulo: 'Agenda médica', ruta: '/citas/agenda', iconoFn: () => icono.agendaMedica() },
     ],
     'Registros': [
@@ -180,7 +183,6 @@ export default function LayoutPrincipal(raiz, rutaActual) {
 }
 
 // ---- CU01: inicio ----
-import { PERMISO_POR_CU } from '../mapaCasosUso.js'
 import { tienePermiso, cerrarSesion } from '../auth/sesion.js'
 
 const CU_POR_RUTA = Object.fromEntries(PAQUETES.flatMap((p) => p.casos.map((c) => ['#' + c.ruta, c.codigo])))

@@ -355,3 +355,22 @@ img, svg, video { max-width: 100%; height: auto; }
 .enlace { color: var(--azul); font-weight: 500; display: inline-block; margin-top: 12px; }
 .enlace:hover { text-decoration: underline; }
 /* ---- Panel de inicio: fin ---- */
+
+/* ---- CU10, CU11, CU12: estilos reutilizables ---- */
+.col-acciones { width: 150px; }
+.celda-vacia { text-align: center; padding: 20px; }
+.paginacion { margin-top: 20px; text-align: center; display: flex; justify-content: center; gap: 10px; align-items: center; }
+.btn-pequeno { font-size: 11px; padding: 6px 10px; }
+.btn-acciones { font-size: 11px; padding: 6px 8px; }
+.texto-error { color: var(--error); }
+.texto-suave { color: var(--suave); }
+.info-paginacion { font-size: 14px; min-width: 180px; }
+.mt-20 { margin-top: 20px; }
+.mb-20 { margin-bottom: 20px; }
+.flex-gap-10 { display: flex; gap: 10px; }
+.scroll-max-300 { max-height: 300px; overflow-y: auto; }
+.item-lista { padding: 8px; border-bottom: 1px solid #ddd; }
+.item-nombres { margin: 0 0 4px 0; font-weight: bold; }
+.item-detalles { margin: 0; color: var(--suave); font-size: 12px; }
+.flex-acciones { display: flex; gap: 4px; flex-wrap: wrap; }
+/* ---- CU10, CU11, CU12: fin ---- */

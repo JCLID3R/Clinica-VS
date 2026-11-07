@@ -48,38 +48,41 @@ final class Cu10ReprogramarCita
     {
         Sesion::requerir('cita.programar');
 
-        $buscar = $p->param('buscar', '');
-        $fecha = $p->param('fecha', '');
-        $estado = $p->param('estado', '');
+        $buscar = $p->consulta('buscar') ?? '';
+        $fecha = $p->consulta('fecha') ?? '';
+        $estado = $p->consulta('estado') ?? '';
 
         $sql = '
             SELECT c.id_cita, \'CM-\' || lpad(c.id_cita::text, 4, \'0\') AS codigo, c.fecha, c.hora_inicio, c.hora_fin, c.estado,
-                   p.id_paciente, p.nombres || \' \' || p.apellidos AS paciente, p.ci,
-                   m.id_medico, m.nombres || \' \' || m.apellidos AS medico,
+                   c.id_especialidad, c.id_medico, c.id_paciente,
+                   p.nombres || \' \' || p.apellidos AS paciente, p.ci,
+                   m.nombres || \' \' || m.apellidos AS medico,
                    e.nombre AS especialidad
             FROM cita c
             JOIN paciente p ON c.id_paciente = p.id_paciente
             JOIN medico m ON c.id_medico = m.id_medico
             JOIN especialidad e ON c.id_especialidad = e.id_especialidad
-            WHERE 1=1
+            WHERE c.estado IN (\'Programada\', \'Confirmada\')
+              AND (c.fecha > CURRENT_DATE OR (c.fecha = CURRENT_DATE AND c.hora_inicio > CURRENT_TIME))
         ';
         $params = [];
 
         if ($buscar) {
             $search = '%' . $buscar . '%';
-            $sql .= ' AND (p.ci::text LIKE :buscar OR translate(lower(p.nombres || \' \' || p.apellidos), \'áéíóúüñ\', \'aeiouun\') LIKE translate(lower(:buscar), \'áéíóúüñ\', \'aeiouun\'))';
-            $params[':buscar'] = $search;
+            $sql .= ' AND (translate(lower(p.nombres || \' \' || p.apellidos), \'áéíóúüñÁÉÍÓÚÜÑ\', \'aeiouunaeiouun\') LIKE translate(lower(:b1), \'áéíóúüñÁÉÍÓÚÜÑ\', \'aeiouunaeiouun\') OR p.ci::text LIKE :b2)';
+            $params[':b1'] = $search;
+            $params[':b2'] = $search;
         }
         if ($fecha) {
-            $sql .= ' AND c.fecha = :fecha';
-            $params[':fecha'] = $fecha;
+            $sql .= ' AND c.fecha = :f';
+            $params[':f'] = $fecha;
         }
         if ($estado) {
-            $sql .= ' AND c.estado = :estado';
-            $params[':estado'] = $estado;
+            $sql .= ' AND c.estado = :e';
+            $params[':e'] = $estado;
         }
 
-        $sql .= ' AND c.estado IN (\'Programada\', \'Confirmada\') ORDER BY c.fecha DESC, c.hora_inicio DESC';
+        $sql .= ' ORDER BY c.fecha DESC, c.hora_inicio DESC';
         $citas = BaseDatos::consultar($sql, $params);
 
         return ['citas' => $citas];
@@ -110,10 +113,14 @@ final class Cu10ReprogramarCita
         if ($horaFin <= $horaInicio) {
             throw new ErrorApi(400, 'Hora de fin debe ser posterior a hora de inicio.');
         }
-        if (!$idMedico) throw new ErrorApi(400, 'Médico requerido.');
 
         $cita = citaObtener($idCita);
         if (!$cita) throw new ErrorApi(404, 'Cita no encontrada.');
+
+        // Si no viene id_medico, usar el de la cita actual
+        if (!$idMedico) {
+            $idMedico = $cita['id_medico'];
+        }
         if ($cita['estado'] !== 'Programada' && $cita['estado'] !== 'Confirmada') {
             throw new ErrorApi(400, 'Solo citas Programada o Confirmada pueden reprogramarse.');
         }
@@ -145,7 +152,14 @@ final class Cu10ReprogramarCita
 
             return [
                 'mensaje' => 'Cita reprogramada correctamente.',
-                'cita' => $citaActualizada,
+                'comprobante' => [
+                    'codigo' => $citaActualizada['codigo'],
+                    'paciente' => $citaActualizada['paciente_nombres'] . ' ' . $citaActualizada['paciente_apellidos'],
+                    'especialidad' => $citaActualizada['especialidad_nombre'],
+                    'medico' => $citaActualizada['medico_nombres'] . ' ' . $citaActualizada['medico_apellidos'],
+                    'fecha' => $citaActualizada['fecha'],
+                    'horario' => $citaActualizada['hora_inicio'] . ' - ' . $citaActualizada['hora_fin'],
+                ],
             ];
         } catch (\PDOException $e) {
             if ($e->getCode() === '23P01') {
