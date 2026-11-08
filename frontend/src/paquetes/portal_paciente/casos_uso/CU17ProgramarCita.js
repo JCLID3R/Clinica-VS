@@ -182,6 +182,9 @@ function PantallaCU17(contenedor) {
       mostrarPaso1()
     })
 
+    const [año, mes, día] = comprobante.fecha.split('-')
+    const fechaFormato = `${día}/${mes}/${año}`
+
     contenedor.replaceChildren(
       el('h2', { class: 'encabezado-pagina' }, 'Cita reservada'),
       el('div', { class: 'comprobante' }, [
@@ -189,7 +192,7 @@ function PantallaCU17(contenedor) {
         el('p', {}, [el('strong', {}, 'Paciente: '), comprobante.paciente]),
         el('p', {}, [el('strong', {}, 'Especialidad: '), comprobante.especialidad]),
         el('p', {}, [el('strong', {}, 'Médico: '), comprobante.medico]),
-        el('p', {}, [el('strong', {}, 'Fecha: '), comprobante.fecha]),
+        el('p', {}, [el('strong', {}, 'Fecha: '), fechaFormato]),
         el('p', {}, [el('strong', {}, 'Horario: '), comprobante.horario]),
       ]),
       el('div', { class: 'acciones' }, [btnVerCitas, btnOtra])

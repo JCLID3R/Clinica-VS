@@ -143,6 +143,9 @@ function mostrarHistorial(datos) {
 }
 
 function mostrarReprogramacion(cita, datos) {
+  let fechaSeleccionada = null
+  let fichaSeleccionada = null
+
   const hoy = new Date()
   const añoMin = hoy.getFullYear()
   const mesMin = String(hoy.getMonth() + 1).padStart(2, '0')
@@ -158,7 +161,9 @@ function mostrarReprogramacion(cita, datos) {
 
   const selectFecha = el('input', { type: 'date', min: minFecha, max: maxFecha })
   const contenedorFichas = el('div', { id: 'cu17-fichas-reprog' })
+  const contenedorResumen = el('div', { id: 'cu17-resumen-reprog', style: 'display: none; margin-top: 20px; padding: 12px; background: #f0f0f0; border-radius: 4px;' })
   const btnCargar = el('button', { type: 'button', class: 'btn' }, 'Cargar fichas')
+  const btnConfirmar = el('button', { type: 'button', class: 'btn', style: 'display: none;' }, 'Confirmar reprogramación')
   const btnCancelar = el('button', { type: 'button', class: 'btn secundario' }, 'Cancelar')
 
   btnCargar.addEventListener('click', async () => {
@@ -177,12 +182,35 @@ function mostrarReprogramacion(cita, datos) {
       }
       const selector = SelectorFichas(res)
       selector.addEventListener('fichaSeleccionada', (evt) => {
-        mostrarConfirmacionReprogramar(cita, fecha, evt.detail.ficha, datos)
+        fechaSeleccionada = fecha
+        fichaSeleccionada = evt.detail.ficha
+
+        const [año, mes, día] = fecha.split('-')
+        const fechaFormato = `${día}/${mes}/${año}`
+        contenedorResumen.replaceChildren(
+          el('p', { style: 'margin: 0;' }, [el('strong', {}, 'Nueva fecha y hora: '), `${fechaFormato} ${fichaSeleccionada.hora}`])
+        )
+        contenedorResumen.style.display = 'block'
+        btnConfirmar.style.display = 'inline-block'
       })
       contenedorFichas.replaceChildren(selector)
     } catch (error) {
       const msg = error instanceof ErrorApi ? error.message : (error.message || 'Error desconocido')
       aviso(msg, 'error')
+    }
+  })
+
+  btnConfirmar.addEventListener('click', async () => {
+    btnConfirmar.disabled = true
+    try {
+      await reprogramarCita(cita.id_cita, fechaSeleccionada, fichaSeleccionada.hora, fichaSeleccionada.hora_fin)
+      aviso('Cita reprogramada exitosamente', 'ok')
+      cerrar()
+      setTimeout(() => cargarCitas(datos), 100)
+    } catch (error) {
+      const msg = error instanceof ErrorApi ? error.message : (error.message || 'Error al reprogramar')
+      aviso(msg, 'error')
+      btnConfirmar.disabled = false
     }
   })
 
@@ -198,53 +226,19 @@ function mostrarReprogramacion(cita, datos) {
     ]),
     btnCargar,
     el('div', { class: 'mt-20' }, contenedorFichas),
+    contenedorResumen,
   ])
 
   const { cerrar } = mostrarModal({
     titulo: 'Reprogramar cita',
     contenido: formulario,
-    botones: [btnCancelar],
+    botones: [btnConfirmar, btnCancelar],
     primerFoco: selectFecha
   })
 
   btnCancelar.addEventListener('click', cerrar)
 }
 
-function mostrarConfirmacionReprogramar(cita, fecha, ficha, datos) {
-  const [año, mes, día] = fecha.split('-')
-  const fechaFormato = `${día}/${mes}/${año}`
-
-  const formulario = el('form', { class: 'formulario' }, [
-    el('p', {}, [el('strong', {}, 'Cita actual: '), `${cita.medico} - ${cita.fecha} ${cita.hora_inicio.substring(0, 5)}`]),
-    el('p', {}, [el('strong', {}, 'Nueva fecha y hora: '), `${fechaFormato} ${ficha.hora}`]),
-  ])
-
-  const btnConfirmar = el('button', { type: 'button', class: 'btn' }, 'Confirmar reprogramación')
-  const btnCancelar = el('button', { type: 'button', class: 'btn secundario' }, 'Cancelar')
-
-  const { cerrar } = mostrarModal({
-    titulo: 'Confirmar reprogramación',
-    contenido: formulario,
-    botones: [btnConfirmar, btnCancelar]
-  })
-
-  btnConfirmar.addEventListener('click', () => {
-    procederReprogramar(cita, fecha, ficha, datos, cerrar)
-  })
-  btnCancelar.addEventListener('click', cerrar)
-}
-
-async function procederReprogramar(cita, fecha, ficha, datos, cerrar) {
-  try {
-    await reprogramarCita(cita.id_cita, fecha, ficha.hora, ficha.hora_fin)
-    aviso('Cita reprogramada exitosamente', 'ok')
-    cerrar()
-    setTimeout(() => cargarCitas(datos), 100)
-  } catch (error) {
-    const msg = error instanceof ErrorApi ? error.message : (error.message || 'Error al reprogramar')
-    aviso(msg, 'error')
-  }
-}
 
 function mostrarConfirmacionCancelar(cita, datos) {
   const inputMotivo = el('textarea', { placeholder: 'Motivo de la cancelación (requerido)', maxlength: 500 })
