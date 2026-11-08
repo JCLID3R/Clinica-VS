@@ -93,8 +93,8 @@ final class Cu16GestionarPerfilPaciente
                 }
                 $hashContrasena = password_hash($contrasena, PASSWORD_BCRYPT);
 
-                $correo = '';
-                if (!empty($paciente['correo'])) {
+$correo = $login . '@pacientes.vidasalud.bo';
+                if (!empty(trim($paciente['correo'] ?? ''))) {
                     $existeCorreo = BaseDatos::fila(
                         "SELECT id_usuario FROM usuario WHERE correo = :mail",
                         [':mail' => $paciente['correo']]
@@ -102,10 +102,6 @@ final class Cu16GestionarPerfilPaciente
                     if (!$existeCorreo) {
                         $correo = $paciente['correo'];
                     }
-                }
-
-                if (!$correo) {
-                    $correo = $login . '@pacientes.vidasalud.bo';
                 }
 
                 $idUsuario = crearUsuario(4, $login, $correo, $hashContrasena);
@@ -221,8 +217,8 @@ final class Cu16GestionarPerfilPaciente
 
         try {
             BaseDatos::transaccion(function () use ($ci, $hashContrasena, $idPacienteInt, $s, $paciente) {
-                $correo = '';
-                if (!empty($paciente['correo'])) {
+                $correo = $ci . '@pacientes.vidasalud.bo';
+                if (!empty(trim($paciente['correo'] ?? ''))) {
                     $existeCorreo = BaseDatos::fila(
                         "SELECT id_usuario FROM usuario WHERE correo = :mail",
                         [':mail' => $paciente['correo']]
@@ -230,10 +226,6 @@ final class Cu16GestionarPerfilPaciente
                     if (!$existeCorreo) {
                         $correo = $paciente['correo'];
                     }
-                }
-
-                if (!$correo) {
-                    $correo = $ci . '@pacientes.vidasalud.bo';
                 }
 
                 $idUsuario = crearUsuario(4, $ci, $correo, $hashContrasena);
