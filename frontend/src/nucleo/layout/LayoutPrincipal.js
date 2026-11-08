@@ -44,6 +44,11 @@ export default function LayoutPrincipal(raiz, rutaActual) {
       { titulo: 'Agenda médica', ruta: '/citas/agenda', iconoFn: () => icono.agendaMedica() },
       { titulo: 'Historial del paciente', ruta: '/citas/historial', iconoFn: () => icono.historialPaciente() },
     ],
+    'Mi portal': [
+      { titulo: 'Programar cita', ruta: '/portal/programar-cita', iconoFn: () => icono.programarCita() },
+      { titulo: 'Mis citas', ruta: '/portal/mis-citas', iconoFn: () => icono.historialPaciente() },
+      { titulo: 'Mi perfil', ruta: '/portal/perfil', iconoFn: () => icono.usuarios() },
+    ],
     'Registros': [
       { titulo: 'Pacientes', ruta: '/personas/pacientes', iconoFn: () => icono.pacientes() },
       { titulo: 'Médicos', ruta: '/personas/medicos', iconoFn: () => icono.medicos() },

@@ -8,6 +8,7 @@ import { icono } from '../../../componentes/iconos.js'
 import { mostrarModal } from '../../../componentes/modal.js'
 import { ErrorApi } from '../../../nucleo/api.js'
 import { listarPacientes, crearPaciente, modificarPaciente, cambiarEstadoPaciente } from '../api.js'
+import { crearCuentaPaciente } from '../../portal_paciente/api.js'
 
 export default function CU04GestionarPacientes(contenedor) {
   PantallaCU04(contenedor)
@@ -109,6 +110,36 @@ async function cargarPacientes(datos) {
       const btnHistorial = el('button', { class: 'btn secundario', type: 'button', style: 'font-size: 12px; padding: 8px 12px;' }, 'Historial')
       const btnDesactivar = el('button', { class: 'btn peligro', type: 'button', style: 'font-size: 12px; padding: 8px 12px;' }, pac.estado === 'activo' ? 'Desactivar' : 'Activar')
 
+      const accionCuenta = pac.id_usuario
+        ? el('span', { style: 'font-size: 12px; padding: 4px 8px; background: var(--ok); color: white; border-radius: 4px; display: inline-block;' }, 'Con cuenta')
+        : el('button', { class: 'btn', type: 'button', style: 'font-size: 12px; padding: 8px 12px;' }, 'Crear cuenta')
+
+      if (!pac.id_usuario && accionCuenta.tagName === 'BUTTON') {
+        accionCuenta.addEventListener('click', async () => {
+          try {
+            const res = await crearCuentaPaciente(pac.id_paciente)
+            const { login, contrasena_temporal } = res
+            const btnAceptar = el('button', { type: 'button', class: 'btn' }, 'Aceptar')
+            const { cerrar } = mostrarModal({
+              titulo: 'Cuenta creada',
+              contenido: el('div', { class: 'info-compacta' }, [
+                el('p', {}, [el('strong', {}, 'Usuario: '), login]),
+                el('p', {}, [el('strong', {}, 'Contraseña temporal: '), contrasena_temporal]),
+                el('p', { class: 'suave' }, 'Entrega estos datos al paciente. Deberá cambiar su contraseña en Mi perfil.'),
+              ]),
+              botones: [btnAceptar]
+            })
+            btnAceptar.addEventListener('click', () => {
+              cerrar()
+              cargarPacientes(datos)
+            })
+          } catch (error) {
+            const msg = error instanceof ErrorApi ? error.message : 'Error al crear cuenta'
+            aviso(msg, 'error')
+          }
+        })
+      }
+
       btnEditar.addEventListener('click', () => {
         datos.pacienteEditar = pac
         mostrarFormulario(datos)
@@ -127,7 +158,7 @@ async function cargarPacientes(datos) {
         class: `estado ${pac.estado === 'activo' ? 'ok' : 'inactivo'}`
       }, pac.estado === 'activo' ? 'Activo' : 'Inactivo')
 
-      const celdaAcciones = el('td', { class: 'flex-acciones-tabla' }, [btnEditar, btnHistorial, btnDesactivar])
+      const celdaAcciones = el('td', { class: 'flex-acciones-tabla' }, [btnEditar, btnHistorial, btnDesactivar, accionCuenta])
 
       const edad = pac.fecha_nacimiento ? Math.floor((new Date() - new Date(pac.fecha_nacimiento)) / (365.25 * 24 * 60 * 60 * 1000)) : '-'
 

@@ -195,21 +195,33 @@ export const PAQUETES = [
     "casos": [
       {
         "codigo": "CU16",
-        "nombre": "Gestionar perfil del paciente",
+        "nombre": "Mi perfil",
         "ruta": "/portal/perfil",
         "ciclo": 2,
         "actores": [
           "Paciente"
-        ]
+        ],
+        "grupo": "Mi portal"
       },
       {
         "codigo": "CU17",
-        "nombre": "Reservar y dar seguimiento a mis citas",
+        "nombre": "Mis citas",
         "ruta": "/portal/mis-citas",
         "ciclo": 2,
         "actores": [
           "Paciente"
-        ]
+        ],
+        "grupo": "Mi portal"
+      },
+      {
+        "codigo": "CU17P",
+        "nombre": "Programar cita",
+        "ruta": "/portal/programar-cita",
+        "ciclo": 2,
+        "actores": [
+          "Paciente"
+        ],
+        "grupo": "Mi portal"
       }
     ]
   }
@@ -224,7 +236,7 @@ export const PERMISO_POR_CU = {
   CU09: 'cita.programar', CU10: 'cita.programar', CU11: 'cita.programar', CU12: 'cita.asistencia',
   CU13: 'agenda.consultar', CU14: 'agenda.consultar',
   CU15: 'reporte.generar',
-  CU16: 'perfil.paciente', CU17: 'perfil.paciente',
+  CU16: 'perfil.paciente', CU17: 'perfil.paciente', CU17P: 'perfil.paciente',
 }
 // ---- REDISENO: fin ----
 // ---- CU01: fin ----

@@ -118,6 +118,8 @@ function formularioLogin(panel) {
   const olvido = el('a', { class: 'enlace', href: '#/login' }, '¿Olvidaste tu contraseña?')
   olvido.addEventListener('click', (e) => { e.preventDefault(); formularioRecuperar(panel) })
 
+  const registro = el('a', { class: 'enlace', href: '#/registro' }, '¿Eres paciente? Crea tu cuenta')
+
   const form = el('form', { class: 'formulario', novalidate: true }, [
     campos.login.nodo, campos.contrasena.nodo, el('div', { class: 'completo' }, [boton]),
   ])
@@ -149,7 +151,7 @@ function formularioLogin(panel) {
     el('h1', {}, 'Iniciar sesión'),
     el('p', { class: 'acceso-ayuda' }, 'Ingrese con el usuario o correo que le asignó la clínica.'),
     alerta.nodo, form,
-    el('p', { class: 'acceso-pie' }, [olvido]),
+    el('p', { class: 'acceso-pie' }, [olvido, el('span', {}, ' • '), registro]),
   )
   campos.login.input.focus()
 }

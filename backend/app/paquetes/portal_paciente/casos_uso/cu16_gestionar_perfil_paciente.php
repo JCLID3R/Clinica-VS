@@ -39,44 +39,95 @@ namespace App\Paquetes\PortalPaciente\CasosUso;
 
 use App\Nucleo\{BaseDatos, ErrorApi, Peticion, Sesion};
 use function App\Paquetes\Personas\Repository\{pacientePorUsuario, pacienteModificarContacto, reemplazarContactos};
+use function App\Paquetes\Seguridad\Repository\{crearUsuario};
 use function App\Paquetes\Agenda\Repository\{registrarBitacora};
 use function App\Paquetes\Seguridad\Politicas\{ipCliente};
 
 final class Cu16GestionarPerfilPaciente
 {
-    /** POST /api/v1/portal/registro — Crear cuenta del portal */
+    /** POST /api/v1/portal/registro — Crear cuenta del portal (autorregistro) */
     public static function registrarCuenta(Peticion $p): mixed
     {
         $body = $p->cuerpo();
         $ci = (int) ($body['ci'] ?? 0);
-        $correo = trim($body['correo'] ?? '');
-        $username = trim($body['username'] ?? '');
+        $fechaNacimiento = trim($body['fecha_nacimiento'] ?? '');
+        $login = trim($body['login'] ?? '');
         $contrasena = trim($body['contrasena'] ?? '');
 
-        if (!$ci || !$correo || !$username || !$contrasena) {
-            throw new ErrorApi(400, 'Todos los campos requeridos.');
+        if (!$ci || !$fechaNacimiento || !$login || !$contrasena) {
+            throw new ErrorApi(400, 'Todos los campos requeridos (CI, fecha de nacimiento, usuario, contraseña).');
         }
 
-        $paciente = BaseDatos::fila("SELECT * FROM paciente WHERE ci = :ci", [':ci' => $ci]);
-        if (!$paciente) {
-            throw new ErrorApi(404, 'CI no registrado en el sistema.');
-        }
-        if ($paciente['id_usuario']) {
-            throw new ErrorApi(409, 'Este CI ya tiene una cuenta de portal.');
-        }
-
-        $hashContrasena = password_hash($contrasena, PASSWORD_BCRYPT);
-        $idUsuario = BaseDatos::fila(
-            "INSERT INTO usuario (id_rol, username, correo, password_hash, estado) VALUES (3, :u, :c, :p, 'activo') RETURNING id_usuario",
-            [':u' => $username, ':c' => $correo, ':p' => $hashContrasena]
-        )['id_usuario'];
-
-        BaseDatos::ejecutar(
-            "UPDATE paciente SET id_usuario = :iu WHERE ci = :ci",
-            [':iu' => $idUsuario, ':ci' => $ci]
+        // Validar paciente existe y está activo (rápida, antes de transacción)
+        $paciente = BaseDatos::fila(
+            "SELECT id_paciente, id_usuario, fecha_nacimiento, correo FROM paciente WHERE ci = :ci AND estado = 'activo'",
+            [':ci' => $ci]
         );
 
-        return ['mensaje' => 'Cuenta creada exitosamente.'];
+        if (!$paciente) {
+            throw new ErrorApi(404, 'No encontramos un paciente con esos datos; acércate a recepción.');
+        }
+
+        if ($paciente['fecha_nacimiento'] !== $fechaNacimiento) {
+            throw new ErrorApi(401, 'La fecha de nacimiento no coincide.');
+        }
+
+        // Crear usuario con rol Paciente (id_rol = 4) en transacción
+        try {
+            BaseDatos::transaccion(function () use ($paciente, $login, $contrasena, $ci) {
+                // Validar dentro de transacción: paciente.id_usuario es NULL y login no existe
+                $pacienteActual = BaseDatos::fila(
+                    "SELECT id_usuario FROM paciente WHERE id_paciente = :id",
+                    [':id' => $paciente['id_paciente']]
+                );
+                if ($pacienteActual['id_usuario']) {
+                    throw new ErrorApi(409, 'Este paciente ya tiene una cuenta.');
+                }
+
+                $existeLogin = BaseDatos::fila(
+                    "SELECT id_usuario FROM usuario WHERE username = :login",
+                    [':login' => $login]
+                );
+                if ($existeLogin) {
+                    throw new ErrorApi(409, 'Ese usuario ya está en uso.');
+                }
+                $hashContrasena = password_hash($contrasena, PASSWORD_BCRYPT);
+
+                $correo = '';
+                if (!empty($paciente['correo'])) {
+                    $existeCorreo = BaseDatos::fila(
+                        "SELECT id_usuario FROM usuario WHERE correo = :mail",
+                        [':mail' => $paciente['correo']]
+                    );
+                    if (!$existeCorreo) {
+                        $correo = $paciente['correo'];
+                    }
+                }
+
+                if (!$correo) {
+                    $correo = $login . '@pacientes.vidasalud.bo';
+                }
+
+                $idUsuario = crearUsuario(4, $login, $correo, $hashContrasena);
+
+                BaseDatos::ejecutar(
+                    "UPDATE paciente SET id_usuario = :iu WHERE id_paciente = :p",
+                    [':iu' => $idUsuario, ':p' => $paciente['id_paciente']]
+                );
+
+                registrarBitacora($idUsuario, 'PORTAL_REGISTRO_AUTORREGISTRO', $paciente['id_paciente'], 'Autorregistro en portal', 'paciente', ipCliente());
+            }, null);
+        } catch (ErrorApi $e) {
+            throw $e;
+        } catch (\PDOException $e) {
+            error_log('Error en registrarCuenta: ' . $e->getMessage());
+            if ($e->getCode() === '23505') {
+                throw new ErrorApi(409, 'Ese usuario ya está en uso.');
+            }
+            throw new ErrorApi(500, 'Error al crear la cuenta.');
+        }
+
+        return ['mensaje' => 'Cuenta creada exitosamente. Por favor inicia sesión.'];
     }
 
     /** GET /api/v1/portal/perfil — Mi perfil */
@@ -119,5 +170,89 @@ final class Cu16GestionarPerfilPaciente
         registrarBitacora($s['id_usuario'], 'PORTAL_PERFIL_ACTUALIZAR', $paciente['id_paciente'], 'Perfil actualizado', 'paciente', ipCliente());
 
         return ['mensaje' => 'Perfil actualizado correctamente.'];
+    }
+
+    /** POST /api/v1/portal/cuentas/{id} — Crear cuenta de paciente desde CU04 */
+    public static function crearCuentaPaciente(Peticion $p): mixed
+    {
+        Sesion::requerir('paciente.gestionar');
+        $s = Sesion::usuario();
+
+        $idPaciente = (int) $p->param('id');
+        $paciente = BaseDatos::fila(
+            "SELECT id_paciente, ci, id_usuario, correo FROM paciente WHERE id_paciente = :id",
+            [':id' => $idPaciente]
+        );
+
+        if (!$paciente) throw new ErrorApi(404, 'Paciente no encontrado.');
+
+        $id_usuario = $paciente['id_usuario'] ?? null;
+        if ($id_usuario) throw new ErrorApi(409, 'Este paciente ya tiene cuenta.');
+
+        // Verificar que el login (CI) no exista como usuario
+        $existeLogin = BaseDatos::fila(
+            "SELECT id_usuario FROM usuario WHERE username = :login",
+            [':login' => (string) $paciente['ci']]
+        );
+        if ($existeLogin) {
+            throw new ErrorApi(409, 'Ya existe un usuario con ese CI.');
+        }
+
+        // Generar contraseña temporal: 8+ caracteres, mayúscula, minúscula, número, símbolo
+        $chars_lower = 'abcdefghijklmnopqrstuvwxyz';
+        $chars_upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $chars_num = '0123456789';
+        $chars_sym = '!@#$%^&*';
+
+        $contrasenaTemp = '';
+        $contrasenaTemp .= $chars_lower[random_int(0, strlen($chars_lower) - 1)];
+        $contrasenaTemp .= $chars_upper[random_int(0, strlen($chars_upper) - 1)];
+        $contrasenaTemp .= $chars_num[random_int(0, strlen($chars_num) - 1)];
+        $contrasenaTemp .= $chars_sym[random_int(0, strlen($chars_sym) - 1)];
+        for ($i = 0; $i < 4; $i++) {
+            $todos = $chars_lower . $chars_upper . $chars_num . $chars_sym;
+            $contrasenaTemp .= $todos[random_int(0, strlen($todos) - 1)];
+        }
+        $contrasenaTemp = str_shuffle($contrasenaTemp);
+
+        $hashContrasena = password_hash($contrasenaTemp, PASSWORD_BCRYPT);
+        $ci = (string) $paciente['ci'];
+        $idPacienteInt = (int) $paciente['id_paciente'];
+
+        try {
+            BaseDatos::transaccion(function () use ($ci, $hashContrasena, $idPacienteInt, $s, $paciente) {
+                $correo = '';
+                if (!empty($paciente['correo'])) {
+                    $existeCorreo = BaseDatos::fila(
+                        "SELECT id_usuario FROM usuario WHERE correo = :mail",
+                        [':mail' => $paciente['correo']]
+                    );
+                    if (!$existeCorreo) {
+                        $correo = $paciente['correo'];
+                    }
+                }
+
+                if (!$correo) {
+                    $correo = $ci . '@pacientes.vidasalud.bo';
+                }
+
+                $idUsuario = crearUsuario(4, $ci, $correo, $hashContrasena);
+
+                BaseDatos::ejecutar(
+                    "UPDATE paciente SET id_usuario = :iu WHERE id_paciente = :p",
+                    [':iu' => $idUsuario, ':p' => $idPacienteInt]
+                );
+
+                registrarBitacora($s['id_usuario'], 'PORTAL_CUENTAPACIENTE_CREAR', $idPacienteInt, 'Cuenta creada por recepción', 'paciente', ipCliente());
+            }, $s['id_usuario']);
+        } catch (\PDOException $e) {
+            error_log('Error en crearCuentaPaciente: ' . $e->getMessage());
+            if ($e->getCode() === '23505') {
+                throw new ErrorApi(409, 'Ya existe un usuario con ese CI.');
+            }
+            throw new ErrorApi(500, 'Error al crear la cuenta.');
+        }
+
+        return ['login' => $ci, 'contrasena_temporal' => $contrasenaTemp, 'mensaje' => 'Cuenta creada. Entrega estos datos al paciente; debe cambiar su contraseña en Mi perfil.'];
     }
 }

@@ -86,7 +86,7 @@ final class Cu04Pacientes
         $pagina = max(1, (int) ($p->consulta('pagina') ?? 1));
         $por_pagina = min(100, max(1, (int) ($p->consulta('por_pagina') ?? 20)));
 
-        $sql = "SELECT p.id_paciente, p.ci, p.nombres, p.apellidos, p.fecha_nacimiento, p.sexo, p.telefono, p.correo, p.direccion, p.tipo_sangre, p.alergias, p.enfermedad_cronica, p.antecedentes, p.estado,
+        $sql = "SELECT p.id_paciente, p.ci, p.nombres, p.apellidos, p.fecha_nacimiento, p.sexo, p.telefono, p.correo, p.direccion, p.tipo_sangre, p.alergias, p.enfermedad_cronica, p.antecedentes, p.estado, p.id_usuario,
                 EXTRACT(YEAR FROM age(p.fecha_nacimiento))::int as edad
         FROM paciente p
         WHERE 1=1";

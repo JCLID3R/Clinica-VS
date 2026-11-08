@@ -24,7 +24,7 @@ export function iniciarRutas(raiz) {
       location.hash = '#/'
       return
     }
-    if (destino.ruta !== '/login' && !puedeEntrar()) {
+    if (destino.ruta !== '/login' && destino.ruta !== '/registro' && !puedeEntrar()) {
       location.hash = '#/login'
       return
     }
