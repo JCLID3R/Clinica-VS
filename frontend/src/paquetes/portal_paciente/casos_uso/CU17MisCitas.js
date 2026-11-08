@@ -27,20 +27,8 @@ function PantallaCU17(contenedor) {
 async function cargarCitas(datos) {
   try {
     const resp = await misCitas()
-    const todas = resp.proximas || []
-
-    const hoy = new Date()
-    const año = hoy.getFullYear()
-    const mes = String(hoy.getMonth() + 1).padStart(2, '0')
-    const día = String(hoy.getDate()).padStart(2, '0')
-    const fechaHoy = `${año}-${mes}-${día}`
-
-    datos.proximas = todas.filter(c =>
-      (c.estado === 'Programada' || c.estado === 'Confirmada') && c.fecha >= fechaHoy
-    )
-    datos.historial = todas.filter(c =>
-      !(c.estado === 'Programada' || c.estado === 'Confirmada' && c.fecha >= fechaHoy)
-    )
+    datos.proximas = resp.proximas || []
+    datos.historial = resp.historial || []
 
     mostrarProximas(datos)
     mostrarHistorial(datos)
@@ -72,7 +60,7 @@ function mostrarProximas(datos) {
       el('th', {}, 'Estado'),
       el('th', { class: 'col-acciones' }, 'Acciones'),
     ])),
-    el('tbody', {}, ...datos.proximas.map(cita => {
+    el('tbody', {}, datos.proximas.map(cita => {
       const puedeModificar = cita.estado === 'Programada' || cita.estado === 'Confirmada'
 
       const btnReprogramar = el('button', { class: 'btn btn-pequeno', type: 'button' }, 'Reprogramar')
@@ -122,7 +110,7 @@ function mostrarHistorial(datos) {
       el('th', {}, 'Código'),
       el('th', {}, 'Estado'),
     ])),
-    el('tbody', {}, ...datos.historial.map(cita => {
+    el('tbody', {}, datos.historial.map(cita => {
       const claseEstado = `estado-cita ${cita.estado.toLowerCase()}`
       const [año, mes, día] = cita.fecha.split('-')
       const fechaFormato = `${día}/${mes}/${año}`

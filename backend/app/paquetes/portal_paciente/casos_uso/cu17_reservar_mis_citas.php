@@ -255,7 +255,10 @@ final class Cu17ReservarMisCitas
         $historial = [];
 
         foreach ($citas as $cita) {
-            if ($cita['fecha'] > $hoy || ($cita['fecha'] === $hoy && $cita['hora_inicio'] > $horaActual)) {
+            $esFutura = $cita['fecha'] > $hoy || ($cita['fecha'] === $hoy && $cita['hora_inicio'] > $horaActual);
+            $esProgramadaOConfirmada = $cita['estado'] === 'Programada' || $cita['estado'] === 'Confirmada';
+
+            if ($esFutura && $esProgramadaOConfirmada) {
                 $proximas[] = $cita;
             } else {
                 $historial[] = $cita;
@@ -350,12 +353,17 @@ final class Cu17ReservarMisCitas
             throw new ErrorApi(403, 'No puedes cancelar esta cita.');
         }
 
+        if ($cita['estado'] !== 'Programada' && $cita['estado'] !== 'Confirmada') {
+            throw new ErrorApi(400, 'Solo citas Programada o Confirmada pueden modificarse.');
+        }
+
         BaseDatos::transaccion(function () use ($idCita, $motivo, $s) {
             BaseDatos::ejecutar('SELECT set_config(\'app.id_usuario\', :id, true)', [':id' => (string) $s['id_usuario']]);
             BaseDatos::ejecutar(
                 "UPDATE cita SET estado = 'Cancelada', motivo_cancelacion = :m WHERE id_cita = :id",
                 [':m' => $motivo, ':id' => $idCita]
             );
+            registrarBitacora($s['id_usuario'], 'CITA_CANCELAR_PORTAL', $idCita, "Cita cancelada por paciente: $motivo", 'paciente', ipCliente());
         }, $s['id_usuario']);
 
         return ['mensaje' => 'Cita cancelada.'];
@@ -385,13 +393,30 @@ final class Cu17ReservarMisCitas
             throw new ErrorApi(403, 'No puedes reprogramar esta cita.');
         }
 
-        BaseDatos::transaccion(function () use ($idCita, $fecha, $horaInicio, $horaFin, $s) {
-            BaseDatos::ejecutar('SELECT set_config(\'app.id_usuario\', :id, true)', [':id' => (string) $s['id_usuario']]);
-            BaseDatos::ejecutar(
-                "UPDATE cita SET fecha = :f, hora_inicio = :hi, hora_fin = :hf WHERE id_cita = :id",
-                [':f' => $fecha, ':hi' => $horaInicio, ':hf' => $horaFin, ':id' => $idCita]
-            );
-        }, $s['id_usuario']);
+        if ($cita['estado'] !== 'Programada' && $cita['estado'] !== 'Confirmada') {
+            throw new ErrorApi(400, 'Solo citas Programada o Confirmada pueden modificarse.');
+        }
+
+        $hoy = date('Y-m-d');
+        if ($fecha < $hoy) {
+            throw new ErrorApi(400, 'La nueva fecha no puede ser en el pasado.');
+        }
+
+        try {
+            BaseDatos::transaccion(function () use ($idCita, $fecha, $horaInicio, $horaFin, $s) {
+                BaseDatos::ejecutar('SELECT set_config(\'app.id_usuario\', :id, true)', [':id' => (string) $s['id_usuario']]);
+                BaseDatos::ejecutar(
+                    "UPDATE cita SET fecha = :f, hora_inicio = :hi, hora_fin = :hf WHERE id_cita = :id",
+                    [':f' => $fecha, ':hi' => $horaInicio, ':hf' => $horaFin, ':id' => $idCita]
+                );
+                registrarBitacora($s['id_usuario'], 'CITA_REPROGRAMAR_PORTAL', $idCita, "Cita reprogramada a $fecha $horaInicio", 'paciente', ipCliente());
+            }, $s['id_usuario']);
+        } catch (\PDOException $e) {
+            if ($e->getCode() === '23P01') {
+                throw new ErrorApi(409, 'El horario ya no está disponible.');
+            }
+            throw $e;
+        }
 
         return ['mensaje' => 'Cita reprogramada.'];
     }
