@@ -64,8 +64,10 @@ function crearBuscador(datos) {
   listarRoles().then((res) => {
     rol.innerHTML = '<option value="">Todos los roles</option>'
     res.roles.forEach((r) => {
-      rol.appendChild(el('option', { value: r.nombre }, r.nombre))
+      rol.appendChild(el('option', { value: r.id_rol }, r.nombre))
     })
+  }).catch((e) => {
+    aviso(e instanceof ErrorApi ? e.message : 'No se pudieron cargar los roles.', 'error')
   })
 
   return el('div', { class: 'formulario' }, [
@@ -100,7 +102,7 @@ async function cargarUsuarios(datos) {
     datos.usuarios = res.usuarios
     actualizarTabla(datos)
   } catch (e) {
-    aviso('error', e instanceof ErrorApi ? e.message : 'No se pudieron cargar los usuarios.')
+    aviso(e instanceof ErrorApi ? e.message : 'Error al cargar los usuarios.', 'error')
   }
 }
 
@@ -128,7 +130,16 @@ function crearAcciones(u, datos) {
   const botones = el('div', { style: 'display:flex; gap:4px; flex-wrap:wrap' })
 
   const editar = el('button', { class: 'btn', style: 'padding:4px 8px; font-size:12px' }, 'Editar')
-  editar.addEventListener('click', () => {
+  editar.addEventListener('click', async () => {
+    if (!datos.rolesDisponibles || datos.rolesDisponibles.length === 0) {
+      try {
+        const res = await listarRoles()
+        datos.rolesDisponibles = res.roles || []
+      } catch (error) {
+        aviso('No se pudieron cargar los roles', 'error')
+        return
+      }
+    }
     datos.usuarioEditar = u
     mostrarFormulario(datos)
   })
@@ -171,10 +182,10 @@ async function cambiarEstadoConConfirmacion(idUsuario, estado, datos) {
     cerrar()
     try {
       await cambiarEstadoUsuario(idUsuario, estado)
-      aviso('éxito', 'Estado actualizado correctamente.')
+      aviso('Estado actualizado correctamente.', 'ok')
       cargarUsuarios(datos)
     } catch (e) {
-      aviso('error', e instanceof ErrorApi ? e.message : 'No se pudo cambiar el estado.')
+      aviso(e instanceof ErrorApi ? e.message : 'No se pudo cambiar el estado.', 'error')
     }
   })
 }
@@ -239,13 +250,13 @@ function mostrarFormulario(datos) {
     form.append(seccionContrasena)
   }
 
-  const selectRol = el('select', { name: 'rol' }, [
-    el('option', { value: '' }, 'Seleccione un rol'),
-    el('option', { value: 'Administrador' }, 'Administrador'),
-    el('option', { value: 'Recepcionista' }, 'Recepcionista'),
-    el('option', { value: 'Médico' }, 'Médico'),
-    el('option', { value: 'Paciente' }, 'Paciente'),
-  ])
+  const opcionesRol = [el('option', { value: '' }, 'Seleccione un rol')]
+  if (datos.rolesDisponibles && datos.rolesDisponibles.length > 0) {
+    datos.rolesDisponibles.forEach(r => {
+      opcionesRol.push(el('option', { value: r.nombre }, r.nombre))
+    })
+  }
+  const selectRol = el('select', { name: 'rol' }, opcionesRol)
   if (usuario) selectRol.value = usuario.rol
 
   form.append(el('div', { class: 'campo completo' }, [
@@ -298,7 +309,7 @@ async function guardarUsuario(idUsuario, form, datos, modal) {
 
   if (Object.keys(errores).length > 0) {
     const msgs = Object.values(errores).join('\n')
-    aviso('error', msgs)
+    aviso(msgs, 'error')
     return
   }
 
@@ -319,12 +330,12 @@ async function guardarUsuario(idUsuario, form, datos, modal) {
       await crearUsuario(datos_envio)
     }
 
-    aviso('éxito', idUsuario ? 'Usuario modificado correctamente.' : 'Usuario creado correctamente.')
+    aviso(idUsuario ? 'Usuario modificado correctamente.' : 'Usuario creado correctamente.', 'ok')
     modal.remove()
     cargarUsuarios(datos)
   } catch (e) {
     const msg = e instanceof ErrorApi ? e.message : 'No se pudo guardar el usuario.'
-    aviso('error', msg)
+    aviso(msg, 'error')
   }
 }
 // ---- CU02: fin ----
