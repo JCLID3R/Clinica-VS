@@ -7,6 +7,7 @@ import { el, aviso } from '../../../componentes/comunes.js'
 import { mostrarModal } from '../../../componentes/modal.js'
 import { ErrorApi } from '../../../nucleo/api.js'
 import { listarMedicos, crearMedico, modificarMedico, cambiarEstadoMedico, listarEspecialidadesActivas } from '../api.js'
+import { crearUsuario } from '../../seguridad/api.js'
 
 export default function CU05GestionarMedicos(contenedor) {
   PantallaCU05(contenedor)
@@ -128,6 +129,83 @@ async function cargarMedicos(datos) {
       const claseEstado = med.estado === 'activo' ? 'btn peligro' : 'btn ok'
       const btnEstado = el('button', { class: claseEstado, type: 'button', style: 'font-size: 11px; padding: 6px 10px;' }, med.estado === 'activo' ? 'Desactivar' : 'Activar')
       botones.push(btnEstado)
+
+      const accionCuenta = med.id_usuario
+        ? el('span', { style: 'font-size: 11px; padding: 4px 8px; background: var(--ok); color: white; border-radius: 4px; display: inline-block;' }, 'Con cuenta')
+        : el('button', { class: 'btn', type: 'button', style: 'font-size: 11px; padding: 6px 10px;' }, 'Crear cuenta')
+
+      if (!med.id_usuario && accionCuenta.tagName === 'BUTTON') {
+        accionCuenta.addEventListener('click', async () => {
+          const nombreCompleto = `${med.nombres} ${med.apellidos}`.replace(/á|é|í|ó|ú|ü|ñ/g, c => ({á:'a',é:'e',í:'i',ó:'o',ú:'u',ü:'u',ñ:'n'}[c]))
+          const palabras = nombreCompleto.toLowerCase().split(/\s+/)
+          const usuarioSugerido = (palabras[0]?.[0] || '') + (palabras[palabras.length - 1] || '')
+
+          const inputUsuario = el('input', { type: 'text', value: usuarioSugerido, style: 'width: 100%;' })
+          const inputCorreo = el('input', { type: 'email', value: med.correo || '', style: 'width: 100%;' })
+
+          const formulario = el('form', { class: 'formulario' }, [
+            el('div', { class: 'campo' }, [
+              el('label', {}, 'Usuario'),
+              inputUsuario,
+            ]),
+            el('div', { class: 'campo' }, [
+              el('label', {}, 'Correo'),
+              inputCorreo,
+            ]),
+          ])
+
+          const btnConfirmar = el('button', { type: 'button', class: 'btn' }, 'Crear cuenta')
+          const btnCancelar = el('button', { type: 'button', class: 'btn secundario' }, 'Cancelar')
+
+          const { cerrar } = mostrarModal({
+            titulo: 'Crear cuenta para médico',
+            contenido: formulario,
+            botones: [btnConfirmar, btnCancelar],
+            primerFoco: inputUsuario
+          })
+
+          btnConfirmar.addEventListener('click', async () => {
+            const username = inputUsuario.value.trim()
+            const correo = inputCorreo.value.trim()
+
+            if (!username || !correo) {
+              aviso('Usuario y correo son requeridos', 'error')
+              return
+            }
+
+            try {
+              const res = await crearUsuario({
+                username,
+                correo,
+                rol: 'Medico',
+                id_medico: med.id_medico
+              })
+
+              const btnAceptar = el('button', { type: 'button', class: 'btn' }, 'Aceptar')
+              const { cerrar: cerrarResultado } = mostrarModal({
+                titulo: 'Cuenta creada',
+                contenido: el('div', { class: 'info-compacta' }, [
+                  el('p', {}, [el('strong', {}, 'Usuario: '), username]),
+                  res.contrasena_temporal ? el('p', {}, [el('strong', {}, 'Contraseña temporal: '), res.contrasena_temporal]) : el('p', { class: 'suave' }, 'Se ha enviado un correo de bienvenida con las instrucciones de acceso.'),
+                  el('p', { class: 'suave' }, 'El médico deberá cambiar su contraseña en Mi perfil.'),
+                ]),
+                botones: [btnAceptar]
+              })
+              btnAceptar.addEventListener('click', () => {
+                cerrarResultado()
+                cargarMedicos(datos)
+              })
+            } catch (error) {
+              const msg = error instanceof ErrorApi ? error.message : 'Error al crear cuenta'
+              aviso(msg, 'error')
+            }
+          })
+
+          btnCancelar.addEventListener('click', cerrar)
+        })
+      }
+
+      botones.push(accionCuenta)
 
       btnEditar.addEventListener('click', () => {
         datos.medicoEditar = med

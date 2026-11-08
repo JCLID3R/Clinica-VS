@@ -136,7 +136,7 @@ function registrarBitacora(int $id_usuario, string $accion, int $id_registro, st
 // ---- CU05: inicio ----
 function listarMedicos(string $buscar, string $estado, int $pagina, int $por_pagina): array
 {
-    $sql = "SELECT DISTINCT m.id_medico, m.registro_profesional, m.nombres, m.apellidos, m.telefono, m.correo, m.estado,
+    $sql = "SELECT DISTINCT m.id_medico, m.registro_profesional, m.nombres, m.apellidos, m.telefono, m.correo, m.estado, m.id_usuario,
                    array_agg(DISTINCT me.id_especialidad) FILTER (WHERE me.id_especialidad IS NOT NULL) AS especialidades_ids,
                    array_agg(DISTINCT e.nombre ORDER BY e.nombre) FILTER (WHERE me.id_especialidad IS NOT NULL) AS especialidades_nombres
             FROM medico m
@@ -160,7 +160,7 @@ function listarMedicos(string $buscar, string $estado, int $pagina, int $por_pag
         $binds[':b4'] = $estado;
     }
 
-    $sql .= " GROUP BY m.id_medico, m.registro_profesional, m.nombres, m.apellidos, m.telefono, m.correo, m.estado
+    $sql .= " GROUP BY m.id_medico, m.registro_profesional, m.nombres, m.apellidos, m.telefono, m.correo, m.estado, m.id_usuario
               ORDER BY m.nombres ASC, m.apellidos ASC";
 
     $total = count(BaseDatos::consultar($sql, $binds));
