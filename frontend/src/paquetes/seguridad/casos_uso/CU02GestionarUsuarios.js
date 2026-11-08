@@ -6,6 +6,7 @@
  * Estado: IMPLEMENTADO.
  */
 import { el, aviso } from '../../../componentes/comunes.js'
+import { mostrarModal } from '../../../componentes/modal.js'
 import { ErrorApi } from '../../../nucleo/api.js'
 import { icono } from '../../../componentes/iconos.js'
 import { listarUsuarios, crearUsuario, modificarUsuario, cambiarEstadoUsuario, listarRoles } from '../api.js'
@@ -105,21 +106,16 @@ async function cargarUsuarios(datos) {
 
 function actualizarTabla(datos) {
   const tbody = document.getElementById('cu02-tabla-cuerpo')
-  tbody.innerHTML = ''
-
-  datos.usuarios.forEach((u) => {
-    const fila = el('tr', {}, [
+  if (datos.usuarios.length === 0) {
+    tbody.replaceChildren(el('tr', {}, el('td', { colspan: '5' }, 'Sin resultados.')))
+  } else {
+    tbody.replaceChildren(...datos.usuarios.map((u) => el('tr', {}, [
       el('td', {}, u.username),
       el('td', {}, u.correo),
       el('td', {}, u.rol),
       el('td', {}, crearBadgeEstado(u.estado)),
       el('td', {}, crearAcciones(u, datos)),
-    ])
-    tbody.append(fila)
-  })
-
-  if (datos.usuarios.length === 0) {
-    tbody.append(el('tr', {}, el('td', { colspan: '5' }, 'Sin resultados.')))
+    ])))
   }
 }
 
@@ -161,15 +157,26 @@ function crearAcciones(u, datos) {
 
 async function cambiarEstadoConConfirmacion(idUsuario, estado, datos) {
   const mensajes = { activo: 'activar', inactivo: 'desactivar', bloqueado: 'bloquear' }
-  if (!confirm(`¿Desea ${mensajes[estado]} este usuario?`)) return
-
-  try {
-    await cambiarEstadoUsuario(idUsuario, estado)
-    aviso('éxito', 'Estado actualizado correctamente.')
-    cargarUsuarios(datos)
-  } catch (e) {
-    aviso('error', e instanceof ErrorApi ? e.message : 'No se pudo cambiar el estado.')
-  }
+  const { cerrar } = mostrarModal({
+    titulo: `Confirmar ${mensajes[estado]}`,
+    contenido: `¿Desea ${mensajes[estado]} este usuario?`,
+    botones: [
+      el('button', { type: 'button', class: 'btn secundario' }, 'Cancelar'),
+      el('button', { type: 'button', class: 'btn' }, 'Confirmar'),
+    ]
+  })
+  const botones = document.querySelectorAll('.modal-content button')
+  botones[0].addEventListener('click', cerrar)
+  botones[1].addEventListener('click', async () => {
+    cerrar()
+    try {
+      await cambiarEstadoUsuario(idUsuario, estado)
+      aviso('éxito', 'Estado actualizado correctamente.')
+      cargarUsuarios(datos)
+    } catch (e) {
+      aviso('error', e instanceof ErrorApi ? e.message : 'No se pudo cambiar el estado.')
+    }
+  })
 }
 
 function mostrarFormulario(datos) {

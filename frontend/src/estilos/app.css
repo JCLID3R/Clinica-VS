@@ -355,3 +355,52 @@ img, svg, video { max-width: 100%; height: auto; }
 .enlace { color: var(--azul); font-weight: 500; display: inline-block; margin-top: 12px; }
 .enlace:hover { text-decoration: underline; }
 /* ---- Panel de inicio: fin ---- */
+
+/* ---- CU10, CU11, CU12: estilos reutilizables ---- */
+.col-acciones { width: 150px; }
+.celda-vacia { text-align: center; padding: 20px; }
+.paginacion { margin-top: 20px; text-align: center; display: flex; justify-content: center; gap: 10px; align-items: center; }
+.btn-pequeno { font-size: 11px; padding: 6px 10px; }
+.btn-acciones { font-size: 11px; padding: 6px 8px; }
+.texto-error { color: var(--error); }
+.texto-suave { color: var(--suave); }
+.info-paginacion { font-size: 14px; min-width: 180px; }
+.mt-20 { margin-top: 20px; }
+.mb-20 { margin-bottom: 20px; }
+.flex-gap-10 { display: flex; gap: 10px; }
+.scroll-max-300 { max-height: 300px; overflow-y: auto; }
+.item-lista { padding: 8px; border-bottom: 1px solid #ddd; }
+.item-nombres { margin: 0 0 4px 0; font-weight: bold; }
+.item-detalles { margin: 0; color: var(--suave); font-size: 12px; }
+.flex-acciones { display: flex; gap: 4px; flex-wrap: wrap; }
+/* ---- CU10, CU11, CU12: fin ---- */
+
+/* ---- CU13: Vista semanal ---- */
+.grid-citas-semanal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 20px; }
+.dia-columna { border: 1px solid var(--borde); border-radius: 8px; padding: 10px; background-color: var(--fondo-alt); }
+.dia-header { border-bottom: 2px solid var(--azul); padding-bottom: 8px; margin-bottom: 10px; }
+.cita-card { background: white; padding: 8px; border-radius: 4px; border-left: 3px solid var(--azul); margin-bottom: 8px; }
+.cita-hora { font-weight: bold; font-size: 12px; }
+/* ---- CU13: fin ---- */
+
+/* ---- CU04: Acciones en tabla ---- */
+.flex-acciones-tabla { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; }
+/* ---- CU04: fin ---- */
+
+/* ---- CU15: Impresión de reportes ---- */
+.contenedor-barra { width: 100%; height: 10px; background: #e8e8e8; border-radius: 3px; overflow: hidden; }
+.barra-grafico { height: 10px; background: var(--ok); border-radius: 3px; transition: width 0.3s ease; }
+
+@media print {
+  #menu-lateral { display: none !important; }
+  .encabezado-pagina { display: none !important; }
+  .formulario-filtros { display: none !important; }
+  .acciones { display: none !important; }
+  body { margin: 0; padding: 10px; }
+  .tabla { font-size: 11px; width: 100%; overflow: visible; }
+  .tabla-contenedor { overflow: visible !important; min-width: auto !important; }
+  .tabla th { background-color: #f5f5f5; }
+  .barra-grafico { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  * { page-break-inside: avoid !important; }
+}
+/* ---- CU15: fin ---- */

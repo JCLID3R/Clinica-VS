@@ -136,7 +136,7 @@ export const PAQUETES = [
         "ciclo": 2,
         "actores": [
           "Recepcionista",
-          "Paciente"
+          "Administrador"
         ]
       },
       {
@@ -195,21 +195,33 @@ export const PAQUETES = [
     "casos": [
       {
         "codigo": "CU16",
-        "nombre": "Gestionar perfil del paciente",
+        "nombre": "Mi perfil",
         "ruta": "/portal/perfil",
         "ciclo": 2,
         "actores": [
           "Paciente"
-        ]
+        ],
+        "grupo": "Mi portal"
       },
       {
         "codigo": "CU17",
-        "nombre": "Reservar y dar seguimiento a mis citas",
+        "nombre": "Mis citas",
         "ruta": "/portal/mis-citas",
         "ciclo": 2,
         "actores": [
           "Paciente"
-        ]
+        ],
+        "grupo": "Mi portal"
+      },
+      {
+        "codigo": "CU17P",
+        "nombre": "Programar cita",
+        "ruta": "/portal/programar-cita",
+        "ciclo": 2,
+        "actores": [
+          "Paciente"
+        ],
+        "grupo": "Mi portal"
       }
     ]
   }
@@ -218,13 +230,13 @@ export const PAQUETES = [
 // ---- CU01: inicio ----
 /** Permiso que exige cada caso de uso en el backend (encabezado de casos_uso/cuXX_*.php). CU01 es público. */
 export const PERMISO_POR_CU = {
-  CU02: 'usuario.gestionar', CU03: 'rol.gestionar',
+  CU02: 'usuario.gestionar', CU03: 'rol.gestionar', RNF: 'bitacora.consultar',
   CU04: 'paciente.gestionar', CU05: 'medico.gestionar', CU06: 'especialidad.gestionar',
   CU07: 'horario.gestionar', CU08: 'cita.programar',
   CU09: 'cita.programar', CU10: 'cita.programar', CU11: 'cita.programar', CU12: 'cita.asistencia',
   CU13: 'agenda.consultar', CU14: 'agenda.consultar',
   CU15: 'reporte.generar',
-  CU16: 'perfil.paciente', CU17: 'perfil.paciente',
+  CU16: 'perfil.paciente', CU17: 'perfil.paciente', CU17P: 'perfil.paciente',
 }
 // ---- REDISENO: fin ----
 // ---- CU01: fin ----

@@ -16,6 +16,7 @@ const RUTAS = [{ ruta: '/', codigo: 'INICIO', vista: PaginaInicio }, ...segurida
 
 export function iniciarRutas(raiz) {
   const pintar = () => {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.remove())
     const hashFull = location.hash.replace(/^#/, '') || '/'
     const [ruta] = hashFull.split('?')
     const destino = RUTAS.find((r) => r.ruta === ruta)
@@ -23,7 +24,7 @@ export function iniciarRutas(raiz) {
       location.hash = '#/'
       return
     }
-    if (destino.ruta !== '/login' && !puedeEntrar()) {
+    if (destino.ruta !== '/login' && destino.ruta !== '/registro' && !puedeEntrar()) {
       location.hash = '#/login'
       return
     }

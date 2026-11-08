@@ -34,14 +34,37 @@ declare(strict_types=1);
 
 namespace App\Paquetes\Citas\CasosUso;
 
-use App\Nucleo\{NoImplementado, Peticion, Sesion};
+use App\Nucleo\{BaseDatos, ErrorApi, Peticion, Sesion};
+use function App\Paquetes\Citas\Repository\{agendaPorMedico, bloqueosEnRango, medicoPorUsuario, citaObtener, historialPorCita, citasPorPaciente};
+use function App\Paquetes\Personas\Repository\{pacientePorUsuario};
 
 final class Cu13ConsultarAgendaMedica
 {
-    /** GET /api/v1/citas/agenda — Agenda médica (?id_medico=&fecha=&estado=) */
+    /** GET /api/v1/citas/agenda — Agenda médica (?id_medico=&desde=&hasta=&estado=) */
     public static function consultar(Peticion $p): mixed
     {
         Sesion::requerir('agenda.consultar');
-        throw new NoImplementado('CU13');
+
+        $s = Sesion::usuario();
+        $idMedico = $p->consulta('id_medico') ? (int) $p->consulta('id_medico') : null;
+        $desde = $p->consulta('desde') ?? date('Y-m-d');
+        $hasta = $p->consulta('hasta') ?? date('Y-m-d', strtotime('+7 days'));
+
+        if (strtolower($s['rol']) === 'medico') {
+            $medico = medicoPorUsuario($s['id_usuario']);
+            if (!$medico) throw new ErrorApi(403, 'Usuario no asociado a un médico.');
+            $idMedico = $medico['id_medico'];
+        }
+        if (!$idMedico) throw new ErrorApi(400, 'Médico requerido.');
+
+        $citas = agendaPorMedico($idMedico, $desde, $hasta);
+        $bloqueos = bloqueosEnRango($desde, $hasta, $idMedico);
+
+        return [
+            'citas' => $citas,
+            'bloqueos' => $bloqueos,
+            'desde' => $desde,
+            'hasta' => $hasta,
+        ];
     }
 }

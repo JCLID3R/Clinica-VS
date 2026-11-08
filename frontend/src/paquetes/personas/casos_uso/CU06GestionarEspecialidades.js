@@ -83,7 +83,7 @@ async function cargarEspecialidades(datos) {
   const estado = document.getElementById('cu06-estado')?.value || ''
 
   try {
-    const resp = await listarEspecialidades(filtro, estado)
+    const resp = await listarEspecialidades(1, 100, filtro, estado)
     datos.especialidades = resp.especialidades
 
     const tbody = document.getElementById('cu06-tabla')

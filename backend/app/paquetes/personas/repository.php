@@ -328,4 +328,32 @@ function pacienteObtener(int $idPaciente): ?array
         [':id' => $idPaciente]
     );
 }
+
+// ---- CU16, CU17: Portal del paciente ----
+function pacientePorUsuario(int $idUsuario): ?array
+{
+    return BaseDatos::fila(
+        "SELECT * FROM paciente WHERE id_usuario = :id",
+        [':id' => $idUsuario]
+    );
+}
+
+function pacienteModificarContacto(int $idPaciente, string $telefono, ?string $correo, ?string $direccion): void
+{
+    BaseDatos::ejecutar(
+        "UPDATE paciente SET telefono = :t, correo = :c, direccion = :d WHERE id_paciente = :id",
+        [':t' => $telefono, ':c' => $correo, ':d' => $direccion, ':id' => $idPaciente]
+    );
+}
+
+function reemplazarContactos(int $idPaciente, array $contactos): void
+{
+    BaseDatos::ejecutar("DELETE FROM contacto_emergencia WHERE id_paciente = :id", [':id' => $idPaciente]);
+    foreach ($contactos as $c) {
+        BaseDatos::ejecutar(
+            "INSERT INTO contacto_emergencia (id_paciente, nombre, parentesco, telefono) VALUES (:p, :n, :pa, :t)",
+            [':p' => $idPaciente, ':n' => $c['nombre'], ':pa' => $c['parentesco'], ':t' => $c['telefono']]
+        );
+    }
+}
 // ---- CU04: fin ----

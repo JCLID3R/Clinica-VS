@@ -20,4 +20,31 @@ import { api } from '../../nucleo/api.js'
 export const programarCita = (datos) => api.post('/citas', datos)
 // ---- CU09: fin ----
 
+// ---- CU10: Reprogramar cita ----
+export const buscarCitas = (query) => api.get(`/citas${query}`)
+export const reprogramarCita = (id, datos) => api.patch(`/citas/${id}/reprogramar`, datos)
+// ---- CU10: fin ----
+
+// ---- CU11: Cancelar cita ----
+export const cancelarCita = (id, datos) => api.patch(`/citas/${id}/cancelar`, datos)
+// ---- CU11: fin ----
+
+// ---- CU12: Registrar asistencia ----
+export const citasAsistencia = (query) => api.get(`/citas/asistencia${query}`)
+export const accionesValidas = (id) => api.get(`/citas/${id}/acciones`)
+export const cambiarEstadoCita = (id, datos) => api.patch(`/citas/${id}/estado`, datos)
+export const obtenerInasistenciasPendientes = () => api.get('/citas/inasistencias-pendientes')
+export const marcarInasistencias = (datos) => api.post('/citas/inasistencias-pendientes', datos)
+// ---- CU12: fin ----
+
+// ---- CU13: Consultar agenda médica ----
+export const obtenerAgendaMedica = (query) => api.get(`/citas/agenda${query}`)
+// ---- CU13: fin ----
+
+// ---- CU14: Consultar historial paciente ----
+export const buscarPacientesParaHistorial = (query) => api.get(`/citas/pacientes${query}`)
+export const obtenerHistorialPaciente = (idPaciente, query) => api.get(`/citas/pacientes/${idPaciente}/historial${query}`)
+export const obtenerCambiosCita = (idCita) => api.get(`/citas/${idCita}/cambios`)
+// ---- CU14: fin ----
+
 export default {}
